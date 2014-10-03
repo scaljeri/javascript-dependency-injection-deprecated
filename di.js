@@ -1,27 +1,26 @@
-window.Sway = window.Sway || {} ; // make sure it exists
-
 (function(console, DEBUG) {
+    'use strict';
 
-    var depCheck = []                                   // used to check for circular dependencies
+    var depCheck = []                                  // used to check for circular dependencies
     /**
      * DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,
      * facilitating lazy initialization and loose coupling between classes.
      *
      * As an example, register all contracts during the application initialization
      *
-     *      var di = new Sway.DI() ;
+     *      var di = new DI() ;
      *      di.register( 'UserModel'                                                                            // contract name
-     *                   , Sway.data.ActiveRecord                                                               // class definiton
+     *                   , data.ActiveRecord                                                               // class definiton
      *                   , [ 'User', 'webSql', ['userNameField', 'passwordField', 'accountInfo'], 'websql' ]    // constructor parameters
      *                   , { singleton: TRUE }                                                                  // configuration: create a singleton
      *                 )
      *        .register( 'userNameField'
-     *                   , Sway.data.Field
+     *                   , data.Field
      *                   , [{ type: 'TEXT',  key: 'username', friendlyName: 'User name' }]
      *                   , {singleton: TRUE}
      *                 )
      *        .register( 'accountInfoField',
-     *                   , Sway.data.Field
+     *                   , data.Field
      *                   , [ { type: 'TEXT',  key: 'username', friendlyName: 'User name' }
      *                        , ['encryptFilter', 'compressFilter']
      *                     ]
@@ -34,24 +33,24 @@ window.Sway = window.Sway || {} ; // make sure it exists
      *
      * Now everywhere in the application create the instances as follows
      *
-     *       var User = Sway.di.getInstance('User') ;
+     *       var User = di.getInstance('User') ;
      *       userRecord = new User({ username: 'John', password: 'Secret' }) ;
      *       // or
-     *       userRecord = Sway.di.getInstance('userRecord', [{username: 'John', password: 'Secret'}]) ;
+     *       userRecord = di.getInstance('userRecord', [{username: 'John', password: 'Secret'}]) ;
      *
-     * To give an idea of what this does, below is an example doing the exact same thing but without Sway.DI
+     * To give an idea of what this does, below is an example doing the exact same thing but without DI
      *
-     *       var userNameField    = new Sway.data.Field( { type: 'TEXT',  key: 'username', friendlyName: 'User name' }] ) ;
-     *       var accountInfoField = new Sway.data.Field( { type: 'TEXT',  key: 'username', friendlyName: 'User name' }
+     *       var userNameField    = new data.Field( { type: 'TEXT',  key: 'username', friendlyName: 'User name' }] ) ;
+     *       var accountInfoField = new data.Field( { type: 'TEXT',  key: 'username', friendlyName: 'User name' }
      *                                                   , [encryptFilterInstance, compressFilterInstance] ) ;
      *       ...
      *
      * And create instances like
      *
-     *       var User = new Sway.data.ActiveRecord( 'User', webSqlInstance, [userNameField, passwordField, accountInfoField] ) ;
+     *       var User = new data.ActiveRecord( 'User', webSqlInstance, [userNameField, passwordField, accountInfoField] ) ;
      *       var userRecord = new User({username: 'John', password: 'Secret'}) ;
      *
-     * @class Sway.DI
+     * @class DI
      * @constructor
      **/
             , di = function() {
@@ -66,7 +65,7 @@ window.Sway = window.Sway || {} ; // make sure it exists
 
     DI.prototype = {
         /**
-         * Register a class by creating a contract. Use {{#crossLink "Sway.DI/getInstance:method"}}{{/crossLink}} to obtain
+         * Register a class by creating a contract. Use {{#crossLink "DI/getInstance:method"}}{{/crossLink}} to obtain
          * an instance from this contract. The <tt>params</tt> parameter is a list of contracts,  and, if needed, normal
          * constructor parameters can be mixed in.
          *
@@ -78,7 +77,7 @@ window.Sway = window.Sway || {} ; // make sure it exists
          * will be replaced with the corresponding instance
          * @param {Object} [options] configuration
          *      @param {String} [options.singleton=false] create a new instance every time
-         *      @param {String} [options.description] describes the contract (currently only used by {{#crossLink "Sway.DI/listContracts:method"}}{{/crossLink}}).
+         *      @param {String} [options.description] describes the contract (currently only used by {{#crossLink "DI/listContracts:method"}}{{/crossLink}}).
          * @return {Object} this
          * @example
          App.di.registerType("ajax", App.AJAX) ;
@@ -102,7 +101,7 @@ window.Sway = window.Sway || {} ; // make sure it exists
          *
          * @method getInstance
          * @param  {String} contract name
-         * @param  {Array} [params] constructor parameters which, if defined, replaces its default arguments (see {{#crossLink "Sway.DI/register:method"}}{{/crossLink}} )
+         * @param  {Array} [params] constructor parameters which, if defined, replaces its default arguments (see {{#crossLink "DI/register:method"}}{{/crossLink}} )
          * @return {Object} Class instance
          * @example
          App.di.register("ajax", ["rest"]) ;
@@ -223,4 +222,4 @@ window.Sway = window.Sway || {} ; // make sure it exists
         }
         return instance ;
     }
-})(window.console, DEBUG) ;
+})(console, DEBUG) ;
