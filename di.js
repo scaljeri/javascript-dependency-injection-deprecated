@@ -1,4 +1,8 @@
-(function(console, DEBUG) {
+if (typeof exports === 'undefined') {
+    exports = window;
+}
+
+exports.DI = (function(console, DEBUG) {
     'use strict';
 
     var depCheck = []                                  // used to check for circular dependencies
@@ -53,7 +57,7 @@
      * @class DI
      * @constructor
      **/
-            , di = function() {
+            , DI = function() {
                 // container for all registered classes
                 Object.defineProperty(this, '_contracts',
                         {
@@ -222,4 +226,13 @@
         }
         return instance ;
     }
-})(console, DEBUG) ;
+
+    return DI;
+})(console, typeof DEBUG === 'undefined' ? false : DEBUG) ;
+
+// AMD compatible
+if (typeof window !== 'undefined' && typeof window.define === "function" && window.define.amd) {
+    window.define('DI', [], function () {
+        return window.DI;
+    });
+}
