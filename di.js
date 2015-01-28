@@ -5,7 +5,7 @@ if (typeof exports === 'undefined') {
 exports.DI = (function(console, DEBUG) {
     'use strict';
 
-    var depCheck = []                                  // used to check for circular dependencies
+    var depCheck = [] // used to check for circular dependencies
     /**
      * DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,
      * facilitating lazy initialization and loose coupling between classes.
@@ -13,10 +13,10 @@ exports.DI = (function(console, DEBUG) {
      * As an example, register all contracts during the application initialization
      *
      *      var di = new DI() ;
-     *      di.register( 'UserModel'                                                                            // contract name
-     *                   , data.ActiveRecord                                                               // class definiton
-     *                   , [ 'User', 'webSql', ['userNameField', 'passwordField', 'accountInfo'], 'websql' ]    // constructor parameters
-     *                   , { singleton: TRUE }                                                                  // configuration: create a singleton
+     *      di.register( 'UserModel'                                                                          // contract name
+     *                   , data.ActiveRecord                                                                  // class definiton
+     *                   , [ 'User', 'webSql', ['userNameField', 'passwordField', 'accountInfo'], 'websql' ]  // constructor parameters
+     *                   , { singleton: TRUE }                                                                // configuration: create a singleton
      *                 )
      *        .register( 'userNameField'
      *                   , data.Field
