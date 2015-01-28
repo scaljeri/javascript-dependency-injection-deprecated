@@ -45,3 +45,21 @@ And create instances like
      
     var User = new data.ActiveRecord( 'User', webSqlInstance, [userNameField, passwordField, accountInfoField] ) ;
     var userRecord = new User({username: 'John', password: 'Secret'}) ;
+
+#### Gulp tasks ####
+
+Install the dependencies as follows
+
+    $> npm install
+
+To minify the library
+
+    $> gulp
+    
+To run the tests
+
+    $> gulp test
+
+#### Installation ####
+
+    $> bower install javascript-dependency-injection
