@@ -6,33 +6,65 @@ Javascript Depenendy Injection library [![Build Status](https://travis-ci.org/sc
      
  As an example, consider a User and Persitance classes:
  
-     function WebSql(name, fieldList)  { ... }        // Persist data using WebSQL
-     function IndexDB(name, fieldList) { ... }        // Persist data using IndexDB
+    function WebSql(name, fieldList)  {
+        this.persist = function (obj) {
+            console.log('WebSQL will persist:');
+            fieldList.forEach(function (field) {
+                console.log('    ' + field + ': ' + obj[field]);
+            });
+        }
+    }
+
+    function IndexDB(name, fieldList)  {
+        this.persist = function (obj) {
+            console.log('IndexDB will persist:');
+            fieldList.forEach(function (field) {
+                console.log('    ' + field + ': ' + obj[field]);
+            });
+        }
+    }
+
+    function User(email, passwd, storage, role) {    // the `storoge` parameter holds an instance
+        this.email = email;
+        this.passwd = passwd;
+        this.role = role;
+
+        this.save = function () {
+            storage.persist(this);
+        };
+    }
+
+ With these classes in our pocket its time to setup the relations between them. The function that does this has the 
+ following signature
  
-     function User(email, passwd, rold, storage) {    // the `storage` parameter holds an instance
-         this.id = uniqueId;                          // from `WebSql` or `IndexDB`
-         this.save = function (log) {
-             storage.persist(this.id, log);
-         };
-     }
-     
- With these classes available the following contracts can be defined:
+     function (<contract name>, 
+               <class reference>, 
+               [optional list of constructor arguments], 
+               {optional configuration object} ) 
+               
+ Or just in code:
  
-     var di = new DI();
-     di.register('user', User, [null, 'welcome', 'websql', 'nobody']);                    
-     di.register('websql', WebSql, ['user', [ .. list of fields ..]], {singleton: true});
-     di.register('indexdb', IndexDB, ['user', [ .. list of fields ..]], {singleton: true});
-     
-Now by default `User` uses the `WebSql` class to persist its user data
+    var di = new DI();
+    
+    di.register('user', User, [null, 'welcome', 'websql', 'nobody']);
+    di.register('websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});
+    di.register('indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: true});
+          
+Note that the constructor arguments are default values or contract names. Now it is easy to create 
+instances:
 
     var user1 = di.getInstance('user', ['john@exampe.com']),
+            -> email: 'john@exampe.com', passwd: 'welcome', storage : WebSQL instance, role: 'nobody'
         user2 = di.getInstance('user', ['john@exampe.com', 'newSecret']); // define a new password
+            -> email: 'john@exampe.com', passwd: 'newSecret', storage : WebSQL instance, role: 'nobody'
     
-But it is also possible to use the other persistant class:
+But it is also possible to use `IndexDB` as the persistance class:
 
-    var user = di.getInstance('user', ['john@exampe.com', null, 'indexdb']),
-        root = di.getInstance('user', ['john@exampe.com', 'newSecret', 'indexdb', 'admin']); 
-     
+    var user = di.getInstance('user', ['john@exampe.com', null, 'indexdb']), // The password is set to null too!
+            -> email: 'john@exampe.com', passwd: null, storage : IndexDB instance, role: 'nobody'
+        root = di.getInstance('user', ['john@exampe.com', undefined, 'indexdb', 'admin']); 
+            -> email: 'john@exampe.com', passwd: 'welcome', storage : IndexDB instance, role: 'admin'
+        
 #### Gulp tasks ####
 
 Install the dependencies as follows
