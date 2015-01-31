@@ -4,50 +4,35 @@ Javascript Depenendy Injection library [![Build Status](https://travis-ci.org/sc
  dependencies are injected into the constructor, facilitating lazy initialization and 
  loose coupling between classes.
      
- As an example, register all contracts during the application initialization
+ As an example, consider a User and Persitance classes:
+ 
+     function WebSql(name, fieldList)  { ... }        // Persist data using WebSQL
+     function IndexDB(name, fieldList) { ... }        // Persist data using IndexDB
+ 
+     function User(email, passwd, rold, storage) {    // the `storage` parameter holds an instance
+         this.id = uniqueId;                          // from `WebSql` or `IndexDB`
+         this.save = function (log) {
+             storage.persist(this.id, log);
+         };
+     }
      
-     var di = new DI() ;
-     di.register( 'UserModel'                                                                     // contract name
-             , data.ActiveRecord                                                                  // class definiton
-             , [ 'User', 'webSql', ['userNameField', 'passwordField', 'accountInfo'], 'websql' ]  // constructor parameters
-             , { singleton: TRUE }                                                                // configuration: create a singleton
-         )
-         .register( 'userNameField'
-             , data.Field
-             , [{ type: 'TEXT',  key: 'username', friendlyName: 'User name' }]
-             , {singleton: TRUE}
-         )
-         .register( 'accountInfoField',
-             , data.Field
-             ,   [ { type: 'TEXT',  key: 'username', friendlyName: 'User name' }
-                     , ['encryptFilter', 'compressFilter']
-                 ]
-             , { singleton: TRUE}
-         )
-         .register( 'userRecord'
-             , di.getInstance('UserModel')  // create the User model!!
-         )
-         ...
+ With these classes available the following contracts can be defined:
+ 
+     var di = new DI();
+     di.register('user', User, [null, 'welcome', 'websql', 'nobody']);                    
+     di.register('websql', WebSql, ['user', [ .. list of fields ..]], {singleton: true});
+     di.register('indexdb', IndexDB, ['user', [ .. list of fields ..]], {singleton: true});
      
-Now everywhere in the application create the instances as follows
-     
-    var User = di.getInstance('User') ;
-    userRecord = new User({ username: 'John', password: 'Secret' }) ;
-    // or
-    userRecord = di.getInstance('userRecord', [{username: 'John', password: 'Secret'}]) ;
-     
-To give an idea of what this does, below is an example doing the exact same thing but without DI
-     
-    var userNameField    = new data.Field( { type: 'TEXT',  key: 'username', friendlyName: 'User name' }] ) ;
-    var accountInfoField = new data.Field( { type: 'TEXT',  key: 'username', friendlyName: 'User name' }
-                                                        , [encryptFilterInstance, compressFilterInstance] ) ;
-    ...
-     
-And create instances like
-     
-    var User = new data.ActiveRecord( 'User', webSqlInstance, [userNameField, passwordField, accountInfoField] ) ;
-    var userRecord = new User({username: 'John', password: 'Secret'}) ;
+Now by default `User` uses the `WebSql` class to persist its user data
 
+    var user1 = di.getInstance('user', ['john@exampe.com']),
+        user2 = di.getInstance('user', ['john@exampe.com', 'newSecret']); // define a new password
+    
+But it is also possible to use the other persistant class:
+
+    var user = di.getInstance('user', ['john@exampe.com', null, 'indexdb']),
+        root = di.getInstance('user', ['john@exampe.com', 'newSecret', 'indexdb', 'admin']); 
+     
 #### Gulp tasks ####
 
 Install the dependencies as follows
