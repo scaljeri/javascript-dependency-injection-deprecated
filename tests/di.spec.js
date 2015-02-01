@@ -1,131 +1,119 @@
 describe("DI", function () {
     "use strict";
 
-    var ns = {};
+    var di;
 
-    // mock some classes
-    ns.Obj1 = function (a) {
-        if (a)
-            this.args = arguments;
-    };
-    ns.Obj2 = function (a) {
-        if (a)
-            this.args = arguments;
-    };
+    function WebSql(name, fieldList)  {
+        this.persist = function (obj) {
+            console.log('WebSQL will persist:');
+            fieldList.forEach(function (field) {
+                console.log('    ' + field + ': ' + obj[field]);
+            });
+        }
+    }
 
-    ns.Obj3 = function (a) {
-        if (a)
-            this.args = arguments;
-    };
-    ns.Obj4 = function (a) {
-        if (a)
-            this.args = arguments;
-    };
+    function IndexDB(name, fieldList)  {
+        this.persist = function (obj) {
+            console.log('IndexDB will persist:');
+            fieldList.forEach(function (field) {
+                console.log('    ' + field + ': ' + obj[field]);
+            });
+        }
+    }
+
+    function User(email, passwd, storage, role) {    // the `storoge` parameter holds an instance
+        this.email = email;
+        this.passwd = passwd;
+        this.role = role;
+
+        this.save = function () {
+            storage.persist(this);
+        };
+    }
 
     beforeEach(function () {
         // create DI
-        ns.di = new window.DI();
-        // create default contracts
-        ns.di._contracts.ajax = {
-            classRef: ns.Obj1,
-            params: ['rest', true],
-            options: {
-                singleton: true
-            }
-        };
-        ns.di._contracts.rest = {
-            classRef: ns.Obj2,
-            params: ['http://bar.foo.com'],
-            options: {
-                singleton: true
-            }
-        };
-        ns.di._contracts.basket = {
-            classRef: ns.Obj3,
-            params: [[1, 2], ['rest'], 'test'],
-            options: {}
-        };
+        di = new window.DI();
+
+        di.register('user', User, [null, 'welcome', 'websql', 'nobody']);
+        di.register('websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});
+        di.register('indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: true});
+
     });
 
-    it("should exist", function () {
-        expect(window.DI).toBeDefined(); // the class
-        expect(ns.di).toBeDefined(); // the instance
+    it('should exist', function () {
+        expect(window.DI).toBeDefined();
+        expect(di).toBeDefined();
     });
 
-    it("should be able to setup a contract", function () {
-        expect(ns.di.register("obj1", ns.Obj1, ['a', 'b'], {
-            singleton: true
-        })).toBe(ns.di);
-        expect(Object.keys(ns.di._contracts).length).toEqual(4);
-        expect(ns.di._contracts['obj1'].classRef).toBe(ns.Obj1);
-        expect(ns.di._contracts['obj1'].params).toEqual(['a', 'b']);
-        expect(ns.di._contracts['obj1'].options).toEqual({
-            singleton: true
-        });
-
-        expect(ns.di.register("obj2", ns.Obj2, {
-            singleton: true
-        })).toBe(ns.di);
-        expect(Object.keys(ns.di._contracts).length).toEqual(5);
-        expect(ns.di._contracts['obj2'].classRef).toBe(ns.Obj2);
-        expect(ns.di._contracts['obj2'].params).toEqual([]);
-        expect(ns.di._contracts['obj2'].options).toEqual({
-            singleton: true
-        });
-
-        expect(ns.di.register("obj3", ns.Obj3)).toBe(ns.di);
-        expect(Object.keys(ns.di._contracts).length).toEqual(6);
-        expect(ns.di._contracts['obj3'].classRef).toBe(ns.Obj3);
-        expect(ns.di._contracts['obj3'].params).toEqual([]);
-        expect(ns.di._contracts['obj3'].options).toEqual({});
+    it('should return the di instance when calling `register`', function () {
+        expect(di.register("test", User, ['a', 'b'])).toBe(di);
     });
 
-    // test createInstance
-    it("should create an instance for a contract", function () {
-        expect(ns.di.getInstance('rest')).toBeInstanceof(ns.Obj2);
-        expect(ns.di.getInstance('rest').args[0]).toEqual('http://bar.foo.com');
+    it('should be able to setup a contract', function () {
+        expect(Object.keys(di._contracts).length).toEqual(3);
+        expect(di._contracts['user'].classRef).toBe(User);
+        expect(di._contracts['websql'].params).toEqual(['userTable', ['email','passwd', 'role']]);
+        expect(di._contracts['indexdb'].options).toEqual({singleton: true});
+    });
+
+    it('should be able to replace an exising contract (without options)', function () {
+        di.register('user', User, [null, 'welcome', 'indexdb', 'admin']);
+
+        expect(di._contracts['user'].classRef).toBe(User);
+        expect(di._contracts['user'].params).toEqual([null, 'welcome', 'indexdb', 'admin']);
+    });
+
+    it('should be able to replace an exising contract (with options)', function () {
+        di.register('websql', WebSql, ['userTable', ['email','passwd', 'role']]);
+        di.register('indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: false});
+
+        expect(di._contracts['websql'].options).toEqual({});
+        expect(di._contracts['indexdb'].options).toEqual({singleton: false});
+    });
+
+    it('should create an instance for a contract', function () {
+        expect(di.getInstance('user', ['john@example.com'])).toBeInstanceof(User);
+        expect(di.getInstance('user', ['john@example.com']).email).toEqual('john@example.com');
+        expect(di.getInstance('user', ['john@example.com']).role).toEqual('nobody');
+    });
+
+    it('should set default parameter to null', function () {
+        expect(di.getInstance('user', ['john@example.com', null]).passwd).toBeNull();
+    });
+
+    it('should set use default parameters', function () {
+        expect(di.getInstance('user', ['john@example.com', undefined]).passwd).toEqual('welcome');
     });
 
     it("should provide a signleton instance", function () {
-        var ajax = ns.di.getInstance('ajax');
-        expect(ajax).toBeInstanceof(ns.Obj1);
-        expect(ns.di.getInstance('ajax')).toBe(ajax); // check singleton
+        expect(di.getInstance('websql')).toBe(di.getInstance('websql'));
     });
 
-    it("should inject dependencies for contract instance", function () {
-        var ajax, ajax1, basket;
+    it("should inject default dependencies", function () {
+        var websql = di.getInstance('websql');
+        spyOn(websql, 'persist');
 
-        // inject 1 dependency
-        ajax = ns.di.getInstance('ajax');
-        expect(ajax.args[0]).toBeInstanceof(ns.Obj2); // check constructor arguments
-        expect(ajax.args[0].args[0]).toEqual('http://bar.foo.com'); // and the constructor argument arguments
+        var user = di.getInstance('user', ['john@example.com']);
+        user.save();
 
+        expect(websql.persist).toHaveBeenCalledWith(user);
 
-        // inject 1 dependency at creation time
-        ajax1 = ns.di.getInstance('ajax', ['basket', 'rest']);
-        expect(ajax1).not.toBe(ajax);
-        expect(ajax1.args[0]).toBeInstanceof(ns.Obj3);
-        expect(ajax1.args[1]).toBeInstanceof(ns.Obj2);
-
-        // complex dependencies
-        basket = ns.di.getInstance('basket');
-        expect(basket).toBeInstanceof(ns.Obj3);
-        expect(basket.args[0]).toBeAnArray();
-        expect(basket.args.length).toEqual(3);
-        expect(basket.args[0][0]).toEqual(1);
-        expect(basket.args[0][1]).toEqual(2);
-        expect(basket.args[1][0]).toEqual(ns.di.getInstance('rest'));
-        expect(basket.args[2]).toEqual('test');
     });
+
+    it('should be able to instantiate contract with different dependencies', function () {
+        var user = di.getInstance('user', ['john@example.com', undefined, 'indexdb']),
+            indexdb = di.getInstance('indexdb');
+
+        spyOn(indexdb, 'persist');
+        user.save();
+
+        expect(indexdb.persist).toHaveBeenCalledWith(user);
+    });
+
     it("should detect circular dependencies", function () {
-        // create curcular dependency
-        ns.di._contracts.rest = {
-            classRef: ns.Obj2,
-            params: ['http://bar.foo.com', 'ajax'],
-            options: {
-                singleton: true
-            }
-        };
-        expect(ns.di.getInstance.bind(ns.di, "ajax")).toThrow("Circular dependency detected for contract ajax");
+        di.register('websql', WebSql, ['user']);
+
+        expect(di.getInstance.bind(di, "user")).toThrow("Circular dependency detected for contract user");
     });
 });
