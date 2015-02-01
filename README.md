@@ -66,7 +66,8 @@ But it is also possible to use `IndexDB` as the persistance class:
             -> email: 'john@exampe.com', passwd: null, storage : IndexDB instance, role: 'nobody'
         root = di.getInstance('user', ['john@exampe.com', undefined, 'indexdb', 'admin']); 
             -> email: 'john@exampe.com', passwd: 'welcome', storage : IndexDB instance, role: 'admin'
-        
+            
+Checkout more detailed the documentation [here](http://scaljeri.github.io/javascript-dependency-injection/classes/DI.html)
 
 #### Gulp tasks ####
 
