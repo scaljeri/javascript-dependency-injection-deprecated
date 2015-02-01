@@ -10,49 +10,69 @@ exports.DI = (function(console, DEBUG) {
      * DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,
      * facilitating lazy initialization and loose coupling between classes.
      *
-     * As an example, register all contracts during the application initialization
+     * As an example, consider a User and Persitance classes:
      *
-     *      var di = new DI() ;
-     *      di.register( 'UserModel'                                                                          // contract name
-     *                   , data.ActiveRecord                                                                  // class definiton
-     *                   , [ 'User', 'webSql', ['userNameField', 'passwordField', 'accountInfo'], 'websql' ]  // constructor parameters
-     *                   , { singleton: TRUE }                                                                // configuration: create a singleton
-     *                 )
-     *        .register( 'userNameField'
-     *                   , data.Field
-     *                   , [{ type: 'TEXT',  key: 'username', friendlyName: 'User name' }]
-     *                   , {singleton: TRUE}
-     *                 )
-     *        .register( 'accountInfoField',
-     *                   , data.Field
-     *                   , [ { type: 'TEXT',  key: 'username', friendlyName: 'User name' }
-     *                        , ['encryptFilter', 'compressFilter']
-     *                     ]
-     *                   , { singleton: TRUE}
-     *                 )
-     *        .register( 'userRecord'
-     *                   , di.getInstance('UserModel')  // create the User model!!
-     *                 )
-     *        ...
+     *     function WebSql(name, fieldList)  {
+     *         this.persist = function (obj) {
+     *             console.log('WebSQL will persist:');
+     *             fieldList.forEach(function (field) {
+     *                 console.log('    ' + field + ': ' + obj[field]);
+     *             });
+     *         }
+     *      }
      *
-     * Now everywhere in the application create the instances as follows
+     *     function IndexDB(name, fieldList)  {
+     *         this.persist = function (obj) {
+     *             console.log('IndexDB will persist:');
+     *             fieldList.forEach(function (field) {
+     *                 console.log('    ' + field + ': ' + obj[field]);
+     *             });
+     *         }
+     *     }
      *
-     *       var User = di.getInstance('User') ;
-     *       userRecord = new User({ username: 'John', password: 'Secret' }) ;
-     *       // or
-     *       userRecord = di.getInstance('userRecord', [{username: 'John', password: 'Secret'}]) ;
+     *     function User(email, passwd, storage, role) {    // the `storoge` parameter holds an instance
+     *         this.email = email;
+     *         this.passwd = passwd;
+     *         this.role = role;
      *
-     * To give an idea of what this does, below is an example doing the exact same thing but without DI
+     *         this.save = function () {
+     *             storage.persist(this);
+     *         };
+     *     }
      *
-     *       var userNameField    = new data.Field( { type: 'TEXT',  key: 'username', friendlyName: 'User name' }] ) ;
-     *       var accountInfoField = new data.Field( { type: 'TEXT',  key: 'username', friendlyName: 'User name' }
-     *                                                   , [encryptFilterInstance, compressFilterInstance] ) ;
-     *       ...
+     * With these classes in our pocket its time to setup the relations between them. The function that does this has the
+     * following signature
      *
-     * And create instances like
+     *     function (<contract name>,
+     *               <class reference>,
+     *               [optional list of constructor arguments],
+     *               {optional configuration object} )
      *
-     *       var User = new data.ActiveRecord( 'User', webSqlInstance, [userNameField, passwordField, accountInfoField] ) ;
-     *       var userRecord = new User({username: 'John', password: 'Secret'}) ;
+     * Or just in code:
+     *
+     *     var di = new DI();
+     *
+     *     di.register('user', User, [null, 'welcome', 'websql', 'nobody']);
+     *     di.register('websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});
+     *     di.register('indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: true});
+     *
+     * Note that the constructor arguments are default values or contract names. Now it is easy to create
+     * instances:
+     *
+     *     var user1 = di.getInstance('user', ['john@exampe.com']),
+     *           -> email: 'john@exampe.com', passwd: 'welcome', storage : WebSQL instance, role: 'nobody'
+     *         user2 = di.getInstance('user', ['john@exampe.com', 'newSecret']); // define a new password
+     *           -> email: 'john@exampe.com', passwd: 'newSecret', storage : WebSQL instance, role: 'nobody'
+     *
+     *     if (user1 instanceof User) { ... } // user1 is an instance of User!!
+     *
+     * But it is also possible to use `IndexDB` as the persistance class:
+     *
+     *     var user = di.getInstance('user', ['john@exampe.com', null, 'indexdb']), // The password is set to null too!
+     *           -> email: 'john@exampe.com', passwd: null, storage : IndexDB instance, role: 'nobody'
+     *         root = di.getInstance('user', ['john@exampe.com', undefined, 'indexdb', 'admin']);
+     *           -> email: 'john@exampe.com', passwd: 'welcome', storage : IndexDB instance, role: 'admin'
+     *
      *
      * @class DI
      * @constructor
@@ -194,7 +214,7 @@ exports.DI = (function(console, DEBUG) {
     }
 
     function createInstanceIfContract(contract) { // is a contract
-        var problemContract, constParam = contract
+        var problemContract, constParam = contract;
 
         if ( typeof(contract) === 'string' && this._contracts[contract] ) {   // is 'contract' just a contructor parameter or a contract?
             if ( depCheck.indexOf(contract) === -1 ) {                        // check for circular dependency

@@ -57,6 +57,8 @@ instances:
             -> email: 'john@exampe.com', passwd: 'welcome', storage : WebSQL instance, role: 'nobody'
         user2 = di.getInstance('user', ['john@exampe.com', 'newSecret']); // define a new password
             -> email: 'john@exampe.com', passwd: 'newSecret', storage : WebSQL instance, role: 'nobody'
+            
+    if (user1 instanceof User) { /* user1 is an instance of User!! */ }
     
 But it is also possible to use `IndexDB` as the persistance class:
 
@@ -65,6 +67,7 @@ But it is also possible to use `IndexDB` as the persistance class:
         root = di.getInstance('user', ['john@exampe.com', undefined, 'indexdb', 'admin']); 
             -> email: 'john@exampe.com', passwd: 'welcome', storage : IndexDB instance, role: 'admin'
         
+
 #### Gulp tasks ####
 
 Install the dependencies as follows

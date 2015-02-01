@@ -3,6 +3,7 @@ var gulp = require('gulp'),
     filelog = require('gulp-filelog'),
     rename = require('gulp-rename'),
     uglify = require('gulp-uglify'),
+    yuidoc = require("gulp-yuidoc"),
     options = {
         globals: {
             exports: true,
@@ -24,6 +25,10 @@ gulp.task('default', function () {
         .pipe(uglify())
         .pipe(rename('di.min.js'))
         .pipe(gulp.dest('.'));
+
+    gulp.src("di.js")
+      .pipe(yuidoc())
+      .pipe(gulp.dest("./doc"));
 });
 
 gulp.task('test', function () {
