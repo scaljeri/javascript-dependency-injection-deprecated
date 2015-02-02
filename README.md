@@ -1,4 +1,4 @@
-Javascript Depenendy Injection library [![Build Status](https://travis-ci.org/scaljeri/javascript-dependency-injection.png)](https://travis-ci.org/scaljeri/javascript-dependency-injection)
+Javascript Dependency Injection library [![Build Status](https://travis-ci.org/scaljeri/javascript-dependency-injection.png)](https://travis-ci.org/scaljeri/javascript-dependency-injection)
 
  DI makes classes accessible by a contract. Instances are created when requested and 
  dependencies are injected into the constructor, facilitating lazy initialization and 
