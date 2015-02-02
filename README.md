@@ -50,7 +50,7 @@ Javascript Depenendy Injection library [![Build Status](https://travis-ci.org/sc
     di.register('websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});
     di.register('indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: true});
           
-Note that the constructor arguments are default values or contract names. Now it is easy to create 
+Note that the provied constructor arguments are default values or contract names. From now it is easy to create 
 instances:
 
     var user1 = di.getInstance('user', ['john@exampe.com']),
@@ -62,7 +62,7 @@ instances:
     
 But it is also possible to use `IndexDB` as the persistance class:
 
-    var user = di.getInstance('user', ['john@exampe.com', null, 'indexdb']), // The password is set to null too!
+    var user = di.getInstance('user', ['john@exampe.com', null, 'indexdb']),               // The password is set to null too!
             -> email: 'john@exampe.com', passwd: null, storage : IndexDB instance, role: 'nobody'
         root = di.getInstance('user', ['john@exampe.com', undefined, 'indexdb', 'admin']); 
             -> email: 'john@exampe.com', passwd: 'welcome', storage : IndexDB instance, role: 'admin'
