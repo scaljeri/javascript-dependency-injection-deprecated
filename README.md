@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/scaljeri/javascript-dependency-injection.png)](https://travis-ci.org/scaljeri/javascript-dependency-injection) [![Coverage Status](https://coveralls.io/repos/scaljeri/javascript-dependency-injection/badge.svg)](https://coveralls.io/r/scaljeri/javascript-dependency-injection) [](https://david-dm.org/scaljeri/javascript-dependency-injection.svg)
+[![Build Status](https://travis-ci.org/scaljeri/javascript-dependency-injection.png)](https://travis-ci.org/scaljeri/javascript-dependency-injection) [![Coverage Status](https://coveralls.io/repos/scaljeri/javascript-dependency-injection/badge.svg)](https://coveralls.io/r/scaljeri/javascript-dependency-injection) [https://david-dm.org/scaljeri/javascript-dependency-injection](https://david-dm.org/scaljeri/javascript-dependency-injection.svg)
 
 Javascript Dependency Injection library
 
