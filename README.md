@@ -1,4 +1,4 @@
-[![Build Status][travis-url]][travis-image] [![Coverage Status][coveralls-url]]([coveralls-image] [![Dependency Status][depstat-image]][depstat-url]
+[![Build Status][travis-url]][travis-image] [![Coverage Status][coveralls-url]][coveralls-image] [![Dependency Status][depstat-image]][depstat-url]
 
 Javascript Dependency Injection library
 
