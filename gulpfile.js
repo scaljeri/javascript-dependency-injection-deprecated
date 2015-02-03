@@ -4,6 +4,7 @@ var gulp = require('gulp'),
     rename = require('gulp-rename'),
     uglify = require('gulp-uglify'),
     yuidoc = require("gulp-yuidoc"),
+    coveralls = require('gulp-coveralls'),
     options = {
         globals: {
             exports: true,
@@ -40,8 +41,8 @@ gulp.task('test', function () {
             'PhantomJS'
         ],
         coverageReporter: {
-            type: 'text',
-            dir: 'target/coverage/'
+            type: 'lcov',
+            dir: 'coverage/'
         },
         frameworks: [
             'jasmine'
@@ -63,4 +64,9 @@ gulp.task('test', function () {
         ],
         singleRun: true
     });
+});
+
+gulp.task('coveralls', ['test'], function () {
+    gulp.src('coverage/**/lcov.info')
+      .pipe(coveralls());
 });
