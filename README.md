@@ -1,4 +1,4 @@
-[![Build Status][travis-url]][travis-image] [![Coverage Status](https://coveralls.io/repos/scaljeri/javascript-dependency-injection/badge.svg)](https://coveralls.io/r/scaljeri/javascript-dependency-injection) [![Dependency Status][depstat-image]][depstat-url]
+[![Build Status][travis-url]][travis-image] [![Coverage Status][coveralls-url]]([coveralls-image] [![Dependency Status][depstat-image]][depstat-url]
 
 Javascript Dependency Injection library
 
@@ -92,8 +92,8 @@ To run the tests
 [travis-url]: https://travis-ci.org/scaljeri/javascript-dependency-injection.png
 [travis-image]: https://travis-ci.org/scaljeri/javascript-dependency-injection
 
-[coveralls-url]: https://coveralls.io/r/markdalgleish/gulp-coveralls
-[coveralls-image]: https://coveralls.io/repos/markdalgleish/gulp-coveralls/badge.png
+[coveralls-url]: https://coveralls.io/repos/scaljeri/javascript-dependency-injection/badge.svg
+[coveralls-image]: https://coveralls.io/r/scaljeri/javascript-dependency-injection
 
 [depstat-url]: https://david-dm.org/scaljeri/javascript-dependency-injection
 [depstat-image]: https://david-dm.org/scaljeri/javascript-dependency-injection.svg
