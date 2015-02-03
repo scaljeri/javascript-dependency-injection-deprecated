@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/scaljeri/javascript-dependency-injection.png)](https://travis-ci.org/scaljeri/javascript-dependency-injection) [![Coverage Status](https://coveralls.io/repos/scaljeri/javascript-dependency-injection/badge.svg)](https://coveralls.io/r/scaljeri/javascript-dependency-injection) [https://david-dm.org/scaljeri/javascript-dependency-injection](https://david-dm.org/scaljeri/javascript-dependency-injection.svg)
+[![Build Status](https://travis-ci.org/scaljeri/javascript-dependency-injection.png)](https://travis-ci.org/scaljeri/javascript-dependency-injection) [![Coverage Status](https://coveralls.io/repos/scaljeri/javascript-dependency-injection/badge.svg)](https://coveralls.io/r/scaljeri/javascript-dependency-injection) [![Dependency Status][depstat-image]][depstat-url]
 
 Javascript Dependency Injection library
 
@@ -88,3 +88,6 @@ To run the tests
 #### Installation ####
 
     $> bower install javascript-dependency-injection
+
+[depstat-url]: https://david-dm.org/scaljeri/javascript-dependency-injection
+[depstat-image]: https://david-dm.org/scaljeri/javascript-dependency-injection.svg
