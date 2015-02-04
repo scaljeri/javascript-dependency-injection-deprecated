@@ -98,6 +98,8 @@ To run the tests
 [depstat-url]: https://david-dm.org/scaljeri/javascript-dependency-injection
 [depstat-image]: https://david-dm.org/scaljeri/javascript-dependency-injection.svg
 
-[depstat-dev-url]: https://david-dm.org/scaljeri/javascript-dependency-injection#info=devDependencies
-[depstat-dev-image]: https://david-dm.org/scaljeri/javascript-dependency-injection.svg#info=devDependencies
+[_depstat-dev-url]: https://david-dm.org/scaljeri/javascript-dependency-injection#info=devDependencies
+[_depstat-dev-image]: https://david-dm.org/scaljeri/javascript-dependency-injection.svg#info=devDependencies
 
+[depstat-dev-url]: https://david-dm.org/scaljeri/javascript-dependency-injection#info=devDependencies
+[depstat-dev-image]: https://david-dm.org/scaljeri/javascript-dependency-injection/dev-status.svg
