@@ -1,4 +1,4 @@
-[![Build Status][travis-url]][travis-image] [![Coverage Status][coveralls-url]][coveralls-image] [![Dependency Status][depstat-image]][depstat-url]
+[![Build Status][travis-url]][travis-image] [![Coverage Status][coveralls-url]][coveralls-image] [![Dependency Status][depstat-image]][depstat-url] [![devDependency Status][depstat-dev-image]][depstat-dev-url]
 
 Javascript Dependency Injection library
 
@@ -97,4 +97,7 @@ To run the tests
 
 [depstat-url]: https://david-dm.org/scaljeri/javascript-dependency-injection
 [depstat-image]: https://david-dm.org/scaljeri/javascript-dependency-injection.svg
+
+[depstat-dev-url]: https://david-dm.org/scaljeri/javascript-dependency-injection#info=devDependencies
+[depstat-dev-image]: https://david-dm.org/scaljeri/javascript-dependency-injection.svg#info=devDependencies
 
