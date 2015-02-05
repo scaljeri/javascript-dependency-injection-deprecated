@@ -1,4 +1,6 @@
-Javascript Dependency Injection library [![Build Status](https://travis-ci.org/scaljeri/javascript-dependency-injection.png)](https://travis-ci.org/scaljeri/javascript-dependency-injection) [![Coverage Status](https://coveralls.io/repos/scaljeri/javascript-dependency-injection/badge.svg)](https://coveralls.io/r/scaljeri/javascript-dependency-injection)
+[![Build Status][travis-url]][travis-image] [![Coverage Status][coveralls-url]][coveralls-image] [![Dependency Status][depstat-image]][depstat-url] [![devDependency Status][depstat-dev-image]][depstat-dev-url]
+
+Javascript Dependency Injection library
 
  DI makes classes accessible by a contract. Instances are created when requested and 
  dependencies are injected into the constructor, facilitating lazy initialization and 
@@ -86,3 +88,18 @@ To run the tests
 #### Installation ####
 
     $> bower install javascript-dependency-injection
+
+[travis-url]: https://travis-ci.org/scaljeri/javascript-dependency-injection.png
+[travis-image]: https://travis-ci.org/scaljeri/javascript-dependency-injection
+
+[coveralls-url]: https://coveralls.io/repos/scaljeri/javascript-dependency-injection/badge.svg
+[coveralls-image]: https://coveralls.io/r/scaljeri/javascript-dependency-injection
+
+[depstat-url]: https://david-dm.org/scaljeri/javascript-dependency-injection
+[depstat-image]: https://david-dm.org/scaljeri/javascript-dependency-injection.svg
+
+[_depstat-dev-url]: https://david-dm.org/scaljeri/javascript-dependency-injection#info=devDependencies
+[_depstat-dev-image]: https://david-dm.org/scaljeri/javascript-dependency-injection.svg#info=devDependencies
+
+[depstat-dev-url]: https://david-dm.org/scaljeri/javascript-dependency-injection#info=devDependencies
+[depstat-dev-image]: https://david-dm.org/scaljeri/javascript-dependency-injection/dev-status.svg
