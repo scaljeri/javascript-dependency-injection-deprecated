@@ -1,4 +1,5 @@
-[![Build Status][travis-url]][travis-image] [![Coverage Status][coveralls-url]][coveralls-image] [![Dependency Status][depstat-image]][depstat-url] [![devDependency Status][depstat-dev-image]][depstat-dev-url]
+[![Build Status][travis-url]][travis-image] [![Coverage Status][coveralls-url]][coveralls-image] [![Dependency Status][depstat-image]][depstat-url] [![devDependency Status][depstat-dev-image]][depstat-dev-url] 
+[![Code Climate][code-climate-url]][code-climate-image]
 
 Javascript Dependency Injection library
 
@@ -103,3 +104,6 @@ To run the tests
 
 [depstat-dev-url]: https://david-dm.org/scaljeri/javascript-dependency-injection#info=devDependencies
 [depstat-dev-image]: https://david-dm.org/scaljeri/javascript-dependency-injection/dev-status.svg
+
+[code-climate-url]: https://codeclimate.com/github/scaljeri/javascript-dependency-injection/badges/gpa.svg
+[code-climate-image]: https://codeclimate.com/github/scaljeri/javascript-dependency-injection
