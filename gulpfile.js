@@ -4,6 +4,7 @@ var gulp = require('gulp'),
     rename = require('gulp-rename'),
     uglify = require('gulp-uglify'),
     yuidoc = require("gulp-yuidoc"),
+    jshint = require('gulp-jshint'),
     coveralls = require('gulp-coveralls'),
     options = {
         globals: {
@@ -30,6 +31,12 @@ gulp.task('default', function () {
     gulp.src("di.js")
       .pipe(yuidoc())
       .pipe(gulp.dest("./doc"));
+});
+
+gulp.task('lint', function() {
+  return gulp.src('di.js')
+    .pipe(jshint())
+    .pipe(jshint.reporter('default'));
 });
 
 gulp.task('test', function () {

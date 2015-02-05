@@ -150,6 +150,7 @@ exports.DI = (function(console, DEBUG) {
                     instance = createInstance.call(this, contract, params) ;
                 }
             }
+
             return instance ;
         },
 
@@ -216,17 +217,21 @@ exports.DI = (function(console, DEBUG) {
     function createInstanceIfContract(contract) { // is a contract
         var problemContract, constParam = contract;
 
-        if ( typeof(contract) === 'string' && this._contracts[contract] ) {   // is 'contract' just a contructor parameter or a contract?
-            if ( depCheck.indexOf(contract) === -1 ) {                        // check for circular dependency
+        if ( typeof(contract) === 'string' && this._contracts[contract] )     // is 'contract' just a contructor parameter or a contract?
+        {
+            if ( depCheck.indexOf(contract) === -1 )                          // check for circular dependency
+            {
                 constParam = this.getInstance(contract) ;                     // create the instance
                 depCheck.pop() ;                                              // done, remove dependency from the list
             }
-            else { // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!
+            else   // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!
+            {
                 problemContract = depCheck[0] ;
                 depCheck.length = 0 ;                                         // cleanup
                 throw "Circular dependency detected for contract " + problemContract ;
             }
         }
+
         return constParam ;
     }
 
@@ -250,7 +255,8 @@ exports.DI = (function(console, DEBUG) {
             cr.apply(this, createInstanceList.call(self, contract, params||[])) ;
         }
 
-        if ( this._contracts[contract]) {           // contract should exist
+        if ( this._contracts[contract])             // contract should exist
+        {
             cr = this._contracts[contract].classRef ;
 
             depCheck.push(contract) ;
@@ -258,9 +264,11 @@ exports.DI = (function(console, DEBUG) {
             instance = new Dependency() ;           // done
             depCheck.pop() ;
         }
-        else if ( DEBUG ) {
+        else if ( DEBUG )
+        {
             console.warn( 'Contract ' + contract + ' does not exist') ;
         }
+
         return instance ;
     }
 
@@ -271,6 +279,7 @@ exports.DI = (function(console, DEBUG) {
 if (typeof window !== 'undefined' && typeof window.define === "function" && window.define.amd)
 {
     window.define('DI', [], function () {
-        return window.DI;
+        'use strict' ;
+        return window.DI ;
     });
 }

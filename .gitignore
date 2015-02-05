@@ -3,3 +3,5 @@ node_modules
 .idea
 /target/
 /doc/
+/.coveralls.yml
+coverage
