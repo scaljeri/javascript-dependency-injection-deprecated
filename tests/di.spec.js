@@ -52,24 +52,24 @@ describe("DI", function () {
 
     it('should be able to setup a contract', function () {
         expect(Object.keys(di._contracts).length).toEqual(3);
-        expect(di._contracts['user'].classRef).toBe(User);
-        expect(di._contracts['websql'].params).toEqual(['userTable', ['email','passwd', 'role']]);
-        expect(di._contracts['indexdb'].options).toEqual({singleton: true});
+        expect(di._contracts.user.classRef).toBe(User);
+        expect(di._contracts.websql.params).toEqual(['userTable', ['email','passwd', 'role']]);
+        expect(di._contracts.indexdb.options).toEqual({singleton: true});
     });
 
     it('should be able to replace an exising contract (without options)', function () {
         di.register('user', User, [null, 'welcome', 'indexdb', 'admin']);
 
-        expect(di._contracts['user'].classRef).toBe(User);
-        expect(di._contracts['user'].params).toEqual([null, 'welcome', 'indexdb', 'admin']);
+        expect(di._contracts.user.classRef).toBe(User);
+        expect(di._contracts.user.params).toEqual([null, 'welcome', 'indexdb', 'admin']);
     });
 
     it('should be able to replace an exising contract (with options)', function () {
         di.register('websql', WebSql, ['userTable', ['email','passwd', 'role']]);
         di.register('indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: false});
 
-        expect(di._contracts['websql'].options).toEqual({});
-        expect(di._contracts['indexdb'].options).toEqual({singleton: false});
+        expect(di._contracts.websql.options).toEqual({});
+        expect(di._contracts.indexdb.options).toEqual({singleton: false});
     });
 
     it('should create an instance for a contract', function () {
