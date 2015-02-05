@@ -1,5 +1,5 @@
 [![Build Status][travis-url]][travis-image] [![Coverage Status][coveralls-url]][coveralls-image] [![Dependency Status][depstat-image]][depstat-url] [![devDependency Status][depstat-dev-image]][depstat-dev-url] 
-[![Code Climate][code-climate-url][code-climate-image]
+[![Code Climate][code-climate-url]][code-climate-image]
 
 Javascript Dependency Injection library
 
