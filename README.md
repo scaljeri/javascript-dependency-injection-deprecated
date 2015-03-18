@@ -79,6 +79,8 @@ Checkout more detailed the documentation [here](http://scaljeri.github.io/javasc
 
 #### Gulp tasks ####
 
+[![Join the chat at https://gitter.im/scaljeri/javascript-dependency-injection](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/scaljeri/javascript-dependency-injection?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Install the dependencies as follows
 
     $> npm install
