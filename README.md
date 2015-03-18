@@ -4,6 +4,8 @@
 [![Code Climate][code-climate-url]][code-climate-image]
 [![Inline docs](http://inch-ci.org/github/scaljeri/javascript-dependency-injection.svg?branch=master&style=flat-square)](http://inch-ci.org/github/scaljeri/javascript-dependency-injection)
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/scaljeri/javascript-dependency-injection?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 Javascript Dependency Injection library
 
  DI makes classes accessible by a contract. Instances are created when requested and 
