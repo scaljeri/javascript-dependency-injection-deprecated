@@ -1,3 +1,5 @@
+var DI = require('../di');
+
 describe("DI", function () {
     "use strict";
 
@@ -33,7 +35,7 @@ describe("DI", function () {
 
     beforeEach(function () {
         // create DI
-        di = new window.DI();
+        di = new DI();
 
         di.register('user', User, [null, 'welcome', 'websql', 'nobody']);
         di.register('websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});
@@ -42,7 +44,7 @@ describe("DI", function () {
     });
 
     it('should exist', function () {
-        expect(window.DI).toBeDefined();
+        expect(DI).toBeDefined();
         expect(di).toBeDefined();
     });
 

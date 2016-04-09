@@ -1,8 +1,4 @@
-if (typeof exports === 'undefined') {
-    exports = window;
-}
-
-exports.DI = (function(console, DEBUG) {
+module.exports = (function(console, DEBUG) {
     'use strict';
 
     var depCheck = [] // used to check for circular dependencies

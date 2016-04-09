@@ -39,21 +39,18 @@ gulp.task('lint', function() {
     .pipe(jshint.reporter('default'));
 });
 
-gulp.task('test', function () {
-    var karma = require('karma').server;
-
-    karma.start({
+gulp.task('test', function (done) {
+    var Server = require('karma').Server;
+    new Server({
         autoWatch: false,
         browsers: [
-            'PhantomJS'
+            'PhantomJS2'
         ],
         coverageReporter: {
             type: 'lcov',
             dir: 'coverage/'
         },
-        frameworks: [
-            'jasmine'
-        ],
+        frameworks: [ 'browserify', 'jasmine'],
         files: [
             'di.js',
             'tests/spec-helpers.js',
@@ -63,14 +60,23 @@ gulp.task('test', function () {
             outputFile: 'target/junit.xml'
         },
         preprocessors: {
-            'di.js': 'coverage'
+            'di.js': 'coverage',
+            'tests/di.spec.js': ['browserify']
+        },
+        browserify: {
+            debug: true,
+            transform: [ 'brfs' ]
         },
         reporters: [
             'junit',
             'coverage'
         ],
-        singleRun: true
-    });
+        singleRun: true,
+        phantomjsLauncher: {
+            // Have phantomjs exit if a ResourceError is encountered (useful if karma exits without killing phantom)
+            exitOnResourceError: true
+        }
+    }).start();
 });
 
 gulp.task('coveralls', ['test'], function () {
