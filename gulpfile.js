@@ -42,7 +42,7 @@ gulp.task('lint', function() {
 gulp.task('test', function (done) {
     var Server = require('karma').Server;
     new Server({
-        autoWatch: false,
+        autoWatch: true,
         browsers: [
             //'PhantomJS2'
             'Chrome'
@@ -61,18 +61,18 @@ gulp.task('test', function (done) {
             outputFile: 'target/junit.xml'
         },
         preprocessors: {
-            './di.js': ['coverage'],
+            './di.js': ['coverage', 'browserify'],
             './tests/di.spec.js': ['browserify']
         },
         browserify: {
             debug: true,
-            transform: [ 'brfs' ]
+            transform: [ 'brfs', 'bulkify' ]
         },
         reporters: [
             'junit',
             'coverage'
         ],
-        singleRun: true,
+        singleRun: false,
         phantomjsLauncher: {
             // Have phantomjs exit if a ResourceError is encountered (useful if karma exits without killing phantom)
             exitOnResourceError: true

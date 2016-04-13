@@ -25,6 +25,7 @@
   "devDependencies": {
     "brfs": "^1.4.3",
     "browserify": "^13.0.0",
+    "bulkify": "^1.2.0",
     "gulp-coveralls": "^0.1.4",
     "gulp-filelog": "^0.4.1",
     "gulp-jshint": "^2.0.0",
