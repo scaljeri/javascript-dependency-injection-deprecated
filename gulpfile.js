@@ -44,7 +44,8 @@ gulp.task('test', function (done) {
     new Server({
         autoWatch: false,
         browsers: [
-            'PhantomJS2'
+            //'PhantomJS2'
+            'Chrome'
         ],
         coverageReporter: {
             type: 'lcov',
@@ -52,16 +53,16 @@ gulp.task('test', function (done) {
         },
         frameworks: [ 'browserify', 'jasmine'],
         files: [
-            'di.js',
-            'tests/spec-helpers.js',
-            'tests/di.spec.js'
+            './di.js',
+            './tests/spec-helpers.js',
+            './tests/di.spec.js'
         ],
         junitReporter: {
             outputFile: 'target/junit.xml'
         },
         preprocessors: {
-            'di.js': 'coverage',
-            'tests/di.spec.js': ['browserify']
+            './di.js': ['coverage'],
+            './tests/di.spec.js': ['browserify']
         },
         browserify: {
             debug: true,
