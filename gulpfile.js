@@ -66,7 +66,7 @@ gulp.task('test', function (done) {
         },
         browserify: {
             debug: true,
-            transform: [ 'brfs', 'bulkify' ]
+            transform: [ 'brfs' ]
         },
         reporters: [
             'junit',

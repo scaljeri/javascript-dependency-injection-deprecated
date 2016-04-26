@@ -1,10 +1,10 @@
 beforeEach(function () {
-    this.addMatchers({
+    jasmine.addMatchers({
         toBeInstanceof: function (classRef) {
             return this.actual instanceof classRef;
         }
     });
-    this.addMatchers({
+    jasmine.addMatchers({
         toBeAnArray: function (classRef) {
             return Array.isArray(this.actual);
         }
