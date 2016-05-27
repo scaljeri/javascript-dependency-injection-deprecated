@@ -184,7 +184,7 @@ export default class DI {
                 , self = this;
 
         function Dependency() {
-            cr.apply(this, this.createInstanceList(contract, params || []));
+            cr.apply(this, self.createInstanceList(contract, params || []));
         }
 
         if (this._contracts[contract])             // contract should exist

@@ -1,37 +1,37 @@
-export class WebSqwl {
-    constructor(name, fieldList) {
-        this._fl = fieldList;
+class BaseDb  {
+    constructor(name, fieldList, handle) {
+        this.name = name;
+        this.fieldList = fielList;
+        this.handle = handle;
     }
 
-    persist(obj) {
-        this._fl.forEach(function (field) {
-            console.log('    ' + field + ': ' + obj[field]);
-        });
+    persist() {}
+}
+
+export class WebSqwl extends BaseDb {
+    constructor(name, fieldList, handle) {
+        super(name, fieldList, handle);
     }
 }
 
-export class IndexDB {
-    constructor(name, fieldList) {
-        this._fl = fieldList;
-    }
-
-    persist(obj) {
-        console.log('IndexDB will persist:');
-        fieldList.forEach(function (field) {
-            console.log('    ' + field + ': ' + obj[field]);
-        });
+export class IndexDB extends BaseDb {
+    constructor(name, fieldList, handle) {
+        super(name, fieldList, handle);
     }
 }
 
 export class User {
     constructor(email, passwd, storage, role) {  // the `storage` parameter holds an instance
-        this._email = email;
-        this._passwd = passwd;
-        this._storage = storage;
-        this._role = role;
+        this.email = email;
+        this.passwd = passwd;
+        this.storage = storage;
+        this.role = role;
     }
 
     save() {
-        this._storage.persist(this);
+        this.storage.persist(this);
     }
 }
+
+//function handleWebSql() {}
+//export { handleWebSql};

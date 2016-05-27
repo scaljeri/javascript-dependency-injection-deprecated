@@ -4,28 +4,86 @@ import * as fixtures from './di-fixtures';
 
 chai.should();
 
-describe("DI", function () {
+describe("DI", () => {
     let di;
 
-    beforeEach(function () {
+    beforeEach(() => {
         di = new DI();
-
-        di.register('user', fixtures.User, [null, 'welcome', 'websql', 'nobody']);
-        di.register('websql', fixtures.WebSql, ['userTable', ['email', 'passwd', 'role']], {singleton: true});
-        di.register('indexdb', fixtures.IndexDB, ['userTable', ['email', 'passwd', 'role']], {singleton: true});
     });
 
-    it('should exist', function () {
+    it('should be defined', () => {
         di.should.be.defined;
     });
 
     describe('#register', () => {
-        it('should be chainable', function () {
-            di.register("test", fixtures.User, ['a', 'b']).should.eql(di);
+        beforeEach(() => {
+            di.register('$user', fixtures.User, [null, 'welcome', '$websql'])
+                    .register('$websql', fixtures.WebSql, ['userTable', ['email', 'passwd', 'role']], {singleton: true})
+                    .register('$indexdb', fixtures.IndexDB, ['userTable', ['email', 'passwd', 'role']], {singleton: true});
         });
-    })
+
+        it('should be chainable', function () {
+            di.register("$test", fixtures.User, ['a', 'b']).should.eql(di);
+        });
+
+        it('should contain 3 contracts', () => {
+
+        });
+    });
 });
+
 /*
+ describe("DI", function () {
+ "use strict";
+
+ var di;
+
+ function WebSql(name, fieldList)  {
+ this.persist = function (obj) {
+ console.log('WebSQL will persist:');
+ fieldList.forEach(function (field) {
+ console.log('    ' + field + ': ' + obj[field]);
+ });
+ }
+ }
+
+ function IndexDB(name, fieldList)  {
+ this.persist = function (obj) {
+ console.log('IndexDB will persist:');
+ fieldList.forEach(function (field) {
+ console.log('    ' + field + ': ' + obj[field]);
+ });
+ }
+ }
+
+ function User(email, passwd, storage, role) {    // the `storoge` parameter holds an instance
+ this.email = email;
+ this.passwd = passwd;
+ this.role = role;
+
+ this.save = function () {
+ storage.persist(this);
+ };
+ }
+
+ beforeEach(function () {
+ // create DI
+ di = new DI();
+
+ di.register('user', User, [null, 'welcome', 'websql', 'nobody']);
+ di.register('websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});
+ di.register('indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: true});
+
+ });
+
+ it('should exist', function () {
+ expect(DI).toBeDefined();
+ expect(di).toBeDefined();
+ });
+
+ it('should return the di instance when calling `register`', function () {
+ expect(di.register("test", User, ['a', 'b'])).toBe(di);
+ });
 
  it('should be able to setup a contract', function () {
  expect(Object.keys(di._contracts).length).toEqual(3);
@@ -95,3 +153,4 @@ describe("DI", function () {
  });
  });
  */
+
