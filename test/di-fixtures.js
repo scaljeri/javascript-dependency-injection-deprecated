@@ -1,27 +1,28 @@
 class BaseDb  {
     constructor(name, fieldList, handle) {
         this.name = name;
-        this.fieldList = fielList;
+        this.fieldList = fieldList;
         this.handle = handle;
     }
 
     persist() {}
 }
 
-export class WebSqwl extends BaseDb {
+export class BarDB extends BaseDb {
     constructor(name, fieldList, handle) {
         super(name, fieldList, handle);
     }
 }
 
-export class IndexDB extends BaseDb {
+export class FooDB extends BaseDb {
     constructor(name, fieldList, handle) {
         super(name, fieldList, handle);
     }
 }
 
 export class User {
-    constructor(email, passwd, storage, role) {  // the `storage` parameter holds an instance
+    constructor(email, passwd, storage, role, permissions=711) {
+        this.permissions = permissions;
         this.email = email;
         this.passwd = passwd;
         this.storage = storage;
@@ -33,5 +34,6 @@ export class User {
     }
 }
 
-//function handleWebSql() {}
-//export { handleWebSql};
+let handleFooDB = {};
+function handleBarDB() {}
+export { handleBarDB, handleFooDB };

@@ -131,7 +131,7 @@ export default class DI {
      var ajax = App.di.getInstance("ajax") ;
      ajax = App.di.getInstance("ajax", ["rest", true]) ;    //
      **/
-    getInstance(contract, params) {
+    getInstance(contract, ...params) {
         let instance = null;
 
         if (this._contracts[contract])                           // it should exist
@@ -140,7 +140,7 @@ export default class DI {
                 instance = this.getSingletonInstance(contract, params);
             } else //create a new instance every time
             {
-                if (this._contracts[contract].noClassRef)
+                if (this._contracts[contract].options.notAClass)
                 {
                     instance = this._contracts[contract].classRef;
                 } else
@@ -152,20 +152,6 @@ export default class DI {
 
         return instance;
     }
-
-    /**
-     * List all available contracts with their description to <tt>console.log</tt>
-     * @method listContracts
-     */
-    listContracts() {
-        let keys = Object.keys(this._contracts);
-
-        keys.sort().forEach((v) => {
-            console(v + ', ' + this._contracts[v].options.description);
-        });
-    }
-
-    // PRIVATE??
 
     /*
      * Returns a new instance of the class matched by the contract. If the contract does not exists an error is thrown.
@@ -215,7 +201,7 @@ export default class DI {
                 , noa = Math.max(params.length, this._contracts[contract].params.length);
 
         for (i = 0; i < noa; i++) {
-            item = params[i] === undefined ? this._contracts[contract].params[i] : params[i];
+            item = (params[i] === undefined || params[i] === null) ? this._contracts[contract].params[i] : params[i];
 
             if (Array.isArray(item)) {
                 constParams.push(this.createInstanceList(contract, item));
@@ -232,11 +218,11 @@ export default class DI {
     getSingletonInstance(contract, params) {
         let config = this._contracts[contract];
 
-        if (params) {
+        if (params && params.length > 0) {
             config.params = params;
         }
 
-        if (config.instance === undefined || params) {
+        if (config.instance === undefined || (params && params.length > 0)) {
             config.instance = this.createInstance(contract, config.params);
         }
 
@@ -245,7 +231,7 @@ export default class DI {
 
 
     createInstanceIfContract(contract) { // is a contract
-        var problemContract, constParam = contract;
+        let problemContract, constParam = contract;
 
         if (typeof(contract) === 'string' && this._contracts[contract])     // is 'contract' just a contructor parameter or a contract?
         {
@@ -256,9 +242,9 @@ export default class DI {
             }
             else   // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!
             {
-                problemContract = depCheck[0];
+                problemContract = this.depCheck[0];
                 this.depCheck.length = 0;                                         // cleanup
-                throw "Circular dependency detected for contract " + problemContract;
+                throw Error("Circular dependency detected for contract " + problemContract);
             }
         }
 
