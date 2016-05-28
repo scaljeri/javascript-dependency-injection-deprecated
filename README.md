@@ -15,7 +15,7 @@ Javascript Dependency Injection library (ES2015)
  As an example, consider a User and Persitance classes:
  
      class FileDB {
-         constructor(fs, tableName, fistOfFields) { .... }
+         constructor(fs, tableName, listOfFields) { .... }
          
          persist(record) { .... }
      }
@@ -49,7 +49,8 @@ or if you also wish to change the role
 
     di.getInstance('$user', 'test@di.com', null, null, 'admin');
 
-For more advanced use-cases checkout the [unit tests](https://github.com/scaljeri/javascript-dependency-injection/blob/master/test/di.spec.js).
+For more advanced use-cases checkout the [unit tests](https://github.com/scaljeri/javascript-dependency-injection/blob/master/test/di.spec.js)
+file.
 [//]: # (Checkout more detailed the documentation [here](http://scaljeri.github.io/javascript-dependency-injection/classes/DI.html))
 
 #### Installation ####
