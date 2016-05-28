@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for javascript-dependency-injection/di.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">javascript-dependency-injection/</a> di.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>76/76</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">98.04% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>50/51</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>14/14</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>47/47</span>
+      </div>
+      <div class='fl pad1y'>
+        <span class="strong">2 statements, 4 branches</span>
+        <span class="quiet">Ignored</span>  &nbsp;&nbsp;&nbsp;&nbsp;
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">83×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">83×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">83×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">64×</span>
+<span class="cline-any cline-yes">59×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">59×</span>
+<span class="cline-any cline-yes">58×</span>
+<span class="cline-any cline-yes">58×</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">57×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">40×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">37×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">40×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">35×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">57×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">57×</span>
+<span class="cline-any cline-yes">193×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">193×</span>
+<span class="cline-any cline-yes">20×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">173×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">55×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">173×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">173×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">23×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">171×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">export default class DI {
+    constructor() {
+        this.depCheck = []; // used to check for circular dependencies
+        /**
+         * DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,
+         * facilitating lazy initialization and loose coupling between classes.
+         *
+         * As an example, consider a User and Persitance classes:
+         *
+         *     class WebSql {
+         *         constructor(name, fieldList)  { ... }
+         *         persist(obj) { ... }
+         *    }
+         *
+         *     class IndexDB {
+         *         constructor(name, fieldList)  { ... }
+         *         persist(obj) { ... }
+         *     }
+         *
+         *     class User {
+         *         constructor(email, passwd, storage, role) { ... }
+         *         save() { this.storage.persist(this); }
+         *     }
+         *
+         * With these classes in our pocket its time to setup the relations between them. The function that does this has the
+         * following signature
+         *
+         *     function (&lt;contract name&gt;,
+         *               &lt;class reference&gt;,
+         *               [optional list of constructor arguments],
+         *               {optional configuration object} )
+         *
+         * Or just in code:
+         *
+         *     var di = new DI();
+         *
+         *     di.register('$user', User, [null, 'welcome', '$websql', 'nobody']);
+         *     di.register('$websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});
+         *     di.register('$indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: true});
+         *
+         * Note that the constructor arguments are default values or contract names. Now it is easy to create
+         * instances:
+         *
+         *     var user1 = di.getInstance('user', 'john@exampe.com'),
+         *           -&gt; email: 'john@exampe.com', passwd: 'welcome', storage : WebSQL instance, role: 'nobody'
+         *         user2 = di.getInstance('user', 'john@exampe.com', 'newSecret'); // define a new password
+         *           -&gt; email: 'john@exampe.com', passwd: 'newSecret', storage : WebSQL instance, role: 'nobody'
+         *
+         *     if (user1 instanceof User) { ... } // user1 is an instance of User!!
+         *
+         * But it is also possible to use `IndexDB` as the persistance class:
+         *
+         *     var user = di.getInstance('user', 'john@exampe.com', null, 'indexdb'), // The password is set to null too!
+         *           -&gt; email: 'john@exampe.com', passwd: null, storage : IndexDB instance, role: 'nobody'
+         *         root = di.getInstance('user', 'john@exampe.com', undefined, 'indexdb', 'admin');
+         *           -&gt; email: 'john@exampe.com', passwd: 'welcome', storage : IndexDB instance, role: 'admin'
+         *
+         *
+         * @class DI
+         * @constructor
+         **/
+        // container for all registered classes
+        Object.defineProperty(this, '_contracts',
+                {
+                    value: {},
+                    enumerable: false // hide it
+                }
+        );
+    }
+&nbsp;
+    /**
+     * Register a class by creating a contract. Use {{#crossLink "DI/getInstance:method"}}{{/crossLink}} to obtain
+     * an instance from this contract. The &lt;tt&gt;params&lt;/tt&gt; parameter is a list of contracts,  and, if needed, normal
+     * constructor parameters can be mixed in.
+     *
+     * @method register
+     * @chainable
+     * @param {String} contract name of the contract
+     * @param {Class} classRef the class bind to this contract
+     * @param {Array} [params] list of constructor parameters. Only if a parameter is a string and matches a contract, it
+     * will be replaced with the corresponding instance
+     * @param {Object} [options] configuration
+     *      @param {String} [options.noClassRef=false] the reference is not a constructor but something else
+     *      @param {String} [options.singleton=false] create a new instance every time
+     *      @param {String} [options.description] describes the contract (currently only used by {{#crossLink "DI/listContracts:method"}}{{/crossLink}}).
+     * @return {Object} this
+     * @example
+     App.di.registerType("ajax", App.AJAX) ;
+     App.di.registerType("ajax", App.AJAX, [], { singleton: true }) ;
+     App.di.registerType("util", App.Util, ["compress", true, ["wsql", "ls"] ], { singleton: true } ) ;
+     **/
+    register(contract, classRef, params, options) {
+        if (params &amp;&amp; !Array.isArray(params)) // fix input
+        {
+            options = params;
+            params = [];
+        }
+&nbsp;
+        this._contracts[contract] = {
+            classRef: classRef,
+            params: params || <span class="branch-1 cbranch-no" title="branch not covered" >[],</span>
+            options: options || {}
+        };
+&nbsp;
+        return this;
+    }
+&nbsp;
+    /**
+     * Returns an instance for the given contract. Use &lt;tt&gt;params&lt;/tt&gt; attribute to overwrite the default
+     * parameters for this contract. If &lt;tt&gt;params&lt;/tt&gt; is defined, the singleton configuration option is ignored.
+     *
+     * @method getInstance
+     * @param  {String} contract name
+     * @param  {Array} [params] constructor parameters which, if defined, replaces its default arguments (see {{#crossLink "DI/register:method"}}{{/crossLink}} )
+     * @return {Object} Class instance
+     * @example
+     App.di.register("ajax", ["rest"]) ;
+     var ajax = App.di.getInstance("ajax") ;
+     ajax = App.di.getInstance("ajax", ["rest", true]) ;    //
+     **/
+    getInstance(contract, ...params) {
+        let instance = null;
+&nbsp;
+        if (this._contracts[contract])                           // it should exist
+        {
+            if (this._contracts[contract].options.singleton) {
+                instance = this.getSingletonInstance(contract, params);
+            } else //create a new instance every time
+            {
+                if (this._contracts[contract].options.notAClass)
+                {
+                    instance = this._contracts[contract].classRef;
+                } else
+                {
+                    instance = this.createInstance(contract, params);
+                }
+            }
+        }
+&nbsp;
+        return instance;
+    }
+&nbsp;
+    /*
+     * Returns a new instance of the class matched by the contract. If the contract does not exists an error is thrown.
+     *
+     * @method createInstance
+     * @param {string} contract - the contract name
+     * @param {Array} params - list of contracts passed to the constructor. Each parameter which is not a string or
+     * an unknown contract, is passed as-is to the constructor
+     *
+     * @returns {Object}
+     * @example
+     var storage = App.di.createInstance("data", ["compress", true, "websql"]) ;
+     **/
+    createInstance(contract, params) {
+        let cr, instance = null
+                , self = this;
+&nbsp;
+        function Dependency() {
+            cr.apply(this, self.createInstanceList(contract, params || []));
+        }
+&nbsp;
+        if (this._contracts[contract])             // contract should exist
+        {
+            cr = this._contracts[contract].classRef;
+&nbsp;
+            this.depCheck.push(contract);
+            Dependency.prototype = cr.prototype;   // Fix instanceof
+            instance = new Dependency();           // done
+            this.depCheck.pop();
+        }
+&nbsp;
+        return instance;
+    }
+&nbsp;
+    /* convert a list of contracts into a list of instances
+     * A dependency list can contain arrays with dependencies too:
+     *    ["depA", ["depB", "depC"], "depE"]
+     * In this case, the constructor would, for example, look like this:
+     *    function constructor(instance, array, instance) { .. }
+     * */
+    createInstanceList(contract, params) {
+        let i, item
+                , constParams = []
+                , noa = Math.max(params.length, this._contracts[contract].params.length);
+&nbsp;
+        for (i = 0; i &lt; noa; i++) {
+            item = (params[i] === undefined || params[i] === null) ? this._contracts[contract].params[i] : params[i];
+&nbsp;
+            if (Array.isArray(item)) {
+                constParams.push(this.createInstanceList(contract, item));
+            }
+            else {
+                constParams.push(this.createInstanceIfContract(item));
+            }
+        }
+&nbsp;
+        return constParams;
+    }
+&nbsp;
+    /* Create or reuse a singleton instance */
+    getSingletonInstance(contract, params) {
+        let config = this._contracts[contract];
+&nbsp;
+        if (params &amp;&amp; params.length &gt; 0) {
+            params.forEach((arg, index) =&gt; {
+                if (arg !== null) {
+                    config.params[index] = arg;
+                }
+            });
+        }
+&nbsp;
+        if (config.instance === undefined || (params &amp;&amp; params.length &gt; 0)) {
+            config.instance = this.createInstance(contract, config.params);
+        }
+&nbsp;
+        return config.instance;
+    }
+&nbsp;
+&nbsp;
+    createInstanceIfContract(contract) { // is a contract
+        let problemContract, constParam = contract;
+&nbsp;
+        if (typeof(contract) === 'string' &amp;&amp; this._contracts[contract])     // is 'contract' just a contructor parameter or a contract?
+        {
+            if (this.depCheck.indexOf(contract) === -1)                          // check for circular dependency
+            {
+                constParam = this.getInstance(contract);                     // create the instance
+                this.depCheck.pop();                                              // done, remove dependency from the list
+            }
+            else   // circular dependency detected!! --&gt; STOP, someone did something stupid -&gt; fix needed!!
+            {
+                problemContract = this.depCheck[0];
+                this.depCheck.length = 0;                                         // cleanup
+                throw Error("Circular dependency detected for contract " + problemContract);
+            }
+        }
+&nbsp;
+        return constParam;
+    }
+}
+&nbsp;
+&nbsp;
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sat May 28 2016 14:58:00 GMT+0200 (CEST)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl">
+  <title data-ice="title">API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="https://github.com/scaljeri/javascript-dependency-injection.git" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/javascript-dependency-injection/di.js~DI.html">DI</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><p><img src="https://camo.githubusercontent.com/06c5d22b7908c0c4928071ac314e75c3da29d750/687474703a2f2f62656e7363687761727a2e6769746875622e696f2f626f7765722d6261646765732f62616467654032782e706e67" alt="Get this with Bower"></p>
+<p><a href="https://travis-ci.org/scaljeri/javascript-dependency-injection"><img src="https://travis-ci.org/scaljeri/javascript-dependency-injection.png" alt="Build Status"></a> <a href="https://coveralls.io/r/scaljeri/javascript-dependency-injection"><img src="https://coveralls.io/repos/scaljeri/javascript-dependency-injection/badge.svg" alt="Coverage Status"></a> <a href="https://david-dm.org/scaljeri/javascript-dependency-injection"><img src="https://david-dm.org/scaljeri/javascript-dependency-injection.svg" alt="Dependency Status"></a> <a href="https://david-dm.org/scaljeri/javascript-dependency-injection#info=devDependencies"><img src="https://david-dm.org/scaljeri/javascript-dependency-injection/dev-status.svg" alt="devDependency Status"></a> 
+<a href="https://codeclimate.com/github/scaljeri/javascript-dependency-injection"><img src="https://codeclimate.com/github/scaljeri/javascript-dependency-injection/badges/gpa.svg" alt="Code Climate"></a>
+<a href="http://inch-ci.org/github/scaljeri/javascript-dependency-injection"><img src="http://inch-ci.org/github/scaljeri/javascript-dependency-injection.svg?branch=master&amp;style=flat-square" alt="Inline docs"></a></p>
+<p><a href="https://gitter.im/scaljeri/javascript-dependency-injection?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter"></a></p>
+<p>Javascript Dependency Injection library (ES2015)</p>
+<p> DI makes classes accessible by a contract. Instances are created when requested and 
+ dependencies are injected into the constructor, facilitating lazy initialization and 
+ loose coupling between classes.</p>
+<p> As an example, consider a User and Persitance classes:</p>
+<pre><code><code class="source-code prettyprint"> class FileDB {
+     constructor(fs, tableName, listOfFields) { .... }
+
+     persist(record) { .... }
+ }
+
+ class User {
+     constructor(email, passwd, storage, role) { ... }
+
+     save() { this.storage.persist(this); }
+ }</code>
+</code></pre><p> To define the relation between both classes use <code>DI#register</code></p>
+<pre><code><code class="source-code prettyprint">import fs from &apos;fs&apos;;
+
+var di = new DI();
+
+di.register(&apos;$user&apos;, User, [null, &apos;welcome&apos;, &apos;$fileDb&apos;, &apos;nobody&apos;]);
+di.register(&apos;$fileDb&apos;, FileDb, [fs, &apos;user&apos;, [&apos;email&apos;,&apos;passwd&apos;, &apos;role&apos;]], {singleton: true});</code>
+</code></pre><p>The 1st argument of <code>DI#register</code> is the name of the contract, the 2nd the class reference, the 3rd an array
+of the constructor arguments and the last a config object. Currently ther config has only 2 options</p>
+<pre><code><code class="source-code prettyprint">- singleton, it only create the instance once
+- notAClass, meaning that the reference is not a class</code>
+</code></pre><p>To get instances do</p>
+<pre><code><code class="source-code prettyprint">di.getInstance(&apos;$user&apos;, &apos;test@di.com&apos;);</code>
+</code></pre><p>or if you also wish to change the role</p>
+<pre><code><code class="source-code prettyprint">di.getInstance(&apos;$user&apos;, &apos;test@di.com&apos;, null, null, &apos;admin&apos;);</code>
+</code></pre><p>For more advanced use-cases checkout the <a href="https://github.com/scaljeri/javascript-dependency-injection/blob/master/test/di.spec.js">unit tests</a>
+file.</p>
+<h4 id="installation">Installation</h4>
+<p>Install the dependencies as follows</p>
+<pre><code><code class="source-code prettyprint">$&gt; npm install --save javascript-dependency-injection@beta</code>
+</code></pre></div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.7)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
