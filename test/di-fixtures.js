@@ -1,17 +1,22 @@
 class BaseDb  {
-    constructor(name, fieldList, handle) {
+    constructor(name, fieldList, handle, recordFactory) {
         this.name = name;
         this.fieldList = fieldList;
         this.handle = handle;
+        this.recordFactory = recordFactory;
     }
 
     persist() {}
 }
 
 export class BarDB extends BaseDb {
-    constructor(name, fieldList, handle) {
-        super(name, fieldList, handle);
+    constructor(name, fieldList, handle, recordFactory) {
+        super(name, fieldList, handle, recordFactory);
     }
+}
+
+export class RecordDb {
+    constructor(fields, types) {}
 }
 
 export class FooDB extends BaseDb {

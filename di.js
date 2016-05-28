@@ -86,25 +86,33 @@ export default class DI {
      * @param {Object} [options] configuration
      *      @param {String} [options.notAClass=true] whether or not the reference is a class or not
      *      @param {String} [options.singleton=false] create a new instance every time
-     *      @param {String} [options.description] describes the contract (currently only used by {{#crossLink "DI/listContracts:method"}}{{/crossLink}}).
+     *      @param {String} [options.factoryFor] name of the contract for which it is a factory
      * @return {Object} this
      * @example
      App.di.registerType("ajax", App.AJAX) ;
      App.di.registerType("ajax", App.AJAX, [], { singleton: true }) ;
      App.di.registerType("util", App.Util, ["compress", true, ["wsql", "ls"] ], { singleton: true } ) ;
      **/
-    register(contract, classRef, params, options) {
-        if (params && !Array.isArray(params)) // fix input
+    register(contractStr, classRef, params = [], options = {}) {
+        if (!Array.isArray(params)) // fix input
         {
             options = params;
             params = [];
         }
 
-        this._contracts[contract] = {
+        this._contracts[contractStr] = {
             classRef: classRef,
-            params: params || [],
-            options: options || {}
+            params: params,
+            options: options
         };
+
+        // Prepare factory
+        if (!options.factoryFor) {
+            this._contracts[`${contractStr}Factory`] = {
+                options: {factoryFor: contractStr},
+                params: []
+            };
+        }
 
         return this;
     }
@@ -123,26 +131,44 @@ export default class DI {
      var ajax = App.di.getInstance("ajax") ;
      ajax = App.di.getInstance("ajax", "rest", true) ;
      **/
-    getInstance(contract, ...params) {
-        let instance = null;
+    getInstance(contractStr, ...params) {
+        let instance = null,
+                contract = this._contracts[contractStr];
 
-        if (this._contracts[contract])                           // it should exist
-        {
-            if (this._contracts[contract].options.singleton) {
-                instance = this.getSingletonInstance(contract, params);
+        if (contract) {
+            if (contract.options.singleton) {
+                instance = this.getSingletonInstance(contractStr, params);
             } else //create a new instance every time
             {
-                if (this._contracts[contract].options.notAClass)
-                {
-                    instance = this._contracts[contract].classRef;
-                } else
-                {
-                    instance = this.createInstance(contract, params);
+                if (contract.options.notAClass) {
+                    instance = contract.classRef;
+                }
+                else if (contract.options.factoryFor) {
+                    instance = this.createFactory(contractStr, ...params);
+                }
+                else {
+                    instance = this.createInstance(contractStr, params);
                 }
             }
         }
 
-        return instance;
+        return instance || contractStr;
+    }
+
+    /**
+     * @private
+     * @param contractStr
+     * @param initialParams
+     * @returns {function()}
+     */
+    createFactory(contractStr, ...initialParams) {
+        let contract = this._contracts[contractStr];
+
+        let baseParams = Object.assign(contract.params, initialParams);
+
+        return (...params) => {
+            return this.getInstance(contract.options.factoryFor, ...Object.assign(baseParams, params));
+        };
     }
 
     /**
@@ -158,23 +184,22 @@ export default class DI {
      * @example
      var storage = App.di.createInstance("data", ["compress", true, "websql"]) ;
      **/
-    createInstance(contract, params) {
+    createInstance(contractStr, params) {
         let cr, instance = null
-                , self = this;
+                , self = this
+                , contract = this._contracts[contractStr];
 
         function Dependency() {
-            cr.apply(this, self.createInstanceList(contract, params || []));
+            cr.apply(this, self.createInstanceList(contractStr, params));
         }
 
-        if (this._contracts[contract])             // contract should exist
-        {
-            cr = this._contracts[contract].classRef;
 
-            this.depCheck.push(contract);
-            Dependency.prototype = cr.prototype;   // Fix instanceof
-            instance = new Dependency();           // done
-            this.depCheck.pop();
-        }
+        cr = contract.classRef;
+
+        this.depCheck.push(contractStr);
+        Dependency.prototype = cr.prototype;   // Fix instanceof
+        instance = new Dependency();           // done
+        this.depCheck.pop();
 
         return instance;
     }
@@ -195,7 +220,12 @@ export default class DI {
             item = (params[i] === undefined || params[i] === null) ? this._contracts[contract].params[i] : params[i];
 
             if (Array.isArray(item)) {
-                constParams.push(this.createInstanceList(contract, item));
+                constParams.push(item.reduce(
+                        (list, val) => {
+                            list.push(this.getInstance(val));
+
+                            return list;
+                        }, []));
             }
             else {
                 constParams.push(this.createInstanceIfContract(item));
