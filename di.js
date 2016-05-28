@@ -1,5 +1,9 @@
 export default class DI {
     constructor() {
+        /** @private
+         *
+         * @type {Array}
+         */
         this.depCheck = []; // used to check for circular dependencies
         /**
          * DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,
@@ -80,7 +84,7 @@ export default class DI {
      * @param {Array} [params] list of constructor parameters. Only if a parameter is a string and matches a contract, it
      * will be replaced with the corresponding instance
      * @param {Object} [options] configuration
-     *      @param {String} [options.noClassRef=false] the reference is not a constructor but something else
+     *      @param {String} [options.notAClass=true] whether or not the reference is a class or not
      *      @param {String} [options.singleton=false] create a new instance every time
      *      @param {String} [options.description] describes the contract (currently only used by {{#crossLink "DI/listContracts:method"}}{{/crossLink}}).
      * @return {Object} this
@@ -107,16 +111,17 @@ export default class DI {
 
     /**
      * Returns an instance for the given contract. Use <tt>params</tt> attribute to overwrite the default
-     * parameters for this contract. If <tt>params</tt> is defined, the singleton configuration option is ignored.
+     * parameters for this contract. If <tt>params</tt> is defined, the singleton will be (re)created and its
+     * parameters are updated.
      *
      * @method getInstance
      * @param  {String} contract name
-     * @param  {Array} [params] constructor parameters which, if defined, replaces its default arguments (see {{#crossLink "DI/register:method"}}{{/crossLink}} )
+     * @param  {...*} [params] constructor parameters which, if defined, replaces its default arguments (see {{#crossLink "DI/register:method"}}{{/crossLink}} )
      * @return {Object} Class instance
      * @example
      App.di.register("ajax", ["rest"]) ;
      var ajax = App.di.getInstance("ajax") ;
-     ajax = App.di.getInstance("ajax", ["rest", true]) ;    //
+     ajax = App.di.getInstance("ajax", "rest", true) ;
      **/
     getInstance(contract, ...params) {
         let instance = null;
@@ -140,8 +145,9 @@ export default class DI {
         return instance;
     }
 
-    /*
-     * Returns a new instance of the class matched by the contract. If the contract does not exists an error is thrown.
+    /**
+     * @private
+     * Returns a new instance of the class matched by the contract.
      *
      * @method createInstance
      * @param {string} contract - the contract name
@@ -173,7 +179,8 @@ export default class DI {
         return instance;
     }
 
-    /* convert a list of contracts into a list of instances
+    /** @private
+     * Convert a list of contracts into a list of instances
      * A dependency list can contain arrays with dependencies too:
      *    ["depA", ["depB", "depC"], "depE"]
      * In this case, the constructor would, for example, look like this:
@@ -198,7 +205,9 @@ export default class DI {
         return constParams;
     }
 
-    /* Create or reuse a singleton instance */
+    /** @private
+     * Create or reuse a singleton instance
+     */
     getSingletonInstance(contract, params) {
         let config = this._contracts[contract];
 
@@ -217,21 +226,25 @@ export default class DI {
         return config.instance;
     }
 
-
-    createInstanceIfContract(contract) { // is a contract
+    /** @private
+     *
+     * @param contract
+     * @returns {*}
+     */
+    createInstanceIfContract(contract) {                                    // is a contract
         let problemContract, constParam = contract;
 
         if (typeof(contract) === 'string' && this._contracts[contract])     // is 'contract' just a contructor parameter or a contract?
         {
-            if (this.depCheck.indexOf(contract) === -1)                          // check for circular dependency
+            if (this.depCheck.indexOf(contract) === -1)                     // check for circular dependency
             {
-                constParam = this.getInstance(contract);                     // create the instance
-                this.depCheck.pop();                                              // done, remove dependency from the list
+                constParam = this.getInstance(contract);                    // create the instance
+                this.depCheck.pop();                                        // done, remove dependency from the list
             }
             else   // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!
             {
                 problemContract = this.depCheck[0];
-                this.depCheck.length = 0;                                         // cleanup
+                this.depCheck.length = 0;                                   // cleanup
                 throw Error("Circular dependency detected for contract " + problemContract);
             }
         }

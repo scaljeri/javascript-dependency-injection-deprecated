@@ -58,6 +58,17 @@ file.
 Install the dependencies as follows
 
     $> npm install --save javascript-dependency-injection@beta
+    
+#### Unit testing ####
+Unit testing is can be done as follows
+
+    $> npm test
+    
+it will also open the code-coverage report
+
+#### Documentation ####
+
+    $> npm run doc
 
 [travis-url]: https://travis-ci.org/scaljeri/javascript-dependency-injection.png
 [travis-image]: https://travis-ci.org/scaljeri/javascript-dependency-injection
