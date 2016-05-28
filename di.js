@@ -182,9 +182,6 @@ export default class DI {
             instance = new Dependency();           // done
             this.depCheck.pop();
         }
-        else {
-            console.warn('Contract ' + contract + ' does not exist');
-        }
 
         return instance;
     }
@@ -219,7 +216,11 @@ export default class DI {
         let config = this._contracts[contract];
 
         if (params && params.length > 0) {
-            config.params = params;
+            params.forEach((arg, index) => {
+                if (arg !== null) {
+                    config.params[index] = arg;
+                }
+            });
         }
 
         if (config.instance === undefined || (params && params.length > 0)) {

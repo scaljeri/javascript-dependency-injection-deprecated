@@ -2,7 +2,7 @@ import chai from 'chai';
 import DI from '../di';
 import * as fixtures from './di-fixtures';
 
-chai.should();
+let should = chai.should();
 
 describe("DI", () => {
     let di;
@@ -22,10 +22,10 @@ describe("DI", () => {
     describe('#register', () => {
         beforeEach(() => {
             di.register('$userA', fixtures.User, ['user-a@test.com', 'welcome', '$barDb'])
-              .register('$userB', fixtures.User, [null, 'welcome', '$fooDb', 'noob'])
-              .register('$barDb', fixtures.BarDB, ['userTable', ['email', 'passwd', 'role'], fixtures.handleBarDB], {singleton: true})
-              .register('$fooDb', fixtures.FooDB, ['userTable', ['email', 'passwd', 'role'], '$handleFooDb'], {singleton: true})
-              .register('$handleFooDb', fixtures.handleFooDB, {notAClass: true});
+                    .register('$userB', fixtures.User, [null, 'welcome', '$fooDb', 'noob'])
+                    .register('$barDb', fixtures.BarDB, ['userTable', ['email', 'passwd', 'role'], fixtures.handleBarDB], {singleton: true})
+                    .register('$fooDb', fixtures.FooDB, ['userTable', ['email', 'passwd', 'role'], '$handleFooDb'], {singleton: true})
+                    .register('$handleFooDb', fixtures.handleFooDB, {notAClass: true});
         });
 
         it('should be chainable', function () {
@@ -79,6 +79,10 @@ describe("DI", () => {
                 foodb = di.getInstance('$fooDb');
             });
 
+            it('should return null if contract doesn\'t exist', () => {
+                should.not.exist(di.getInstance('$doesNotExist'));
+            });
+
             it('should have initialized user A', () => {
                 userA.email.should.equals('user-a@test.com');
                 userA.passwd.should.equals('welcome');
@@ -103,6 +107,51 @@ describe("DI", () => {
                 }).should.throw(Error, /Circular dependency detected for contract \$userA/);
             });
 
+            describe('Recreate a singleton', () => {
+                let oldSingleton, newSingleton;
+
+                beforeEach(() => {
+                    oldSingleton = di.getInstance('$barDb'); // Create singleton
+                    newSingleton = di.getInstance('$barDb', null, ['e', 'p', 'r']); // Re-create singleton because of the new params
+                });
+
+                it('should have create a new singleton', () => {
+                    oldSingleton.should.not.equals(newSingleton);
+                });
+
+                it('should have updated the params', () => {
+                    newSingleton = di.getInstance('$barDb');
+
+                    newSingleton.name.should.equals('userTable');
+                    newSingleton.fieldList.should.eql(['e', 'p', 'r']);
+                    newSingleton.handle.should.equals(fixtures.handleBarDB);
+                });
+            });
+        });
+
+        describe('#createInstance', () => {
+            let userA, barDbSingletonA, barDbSingletonB, newBarDb, doesNotExist;
+
+            beforeEach(() => {
+                userA = di.createInstance('$userA', null, null, null, 'admin', '777');
+                newBarDb = di.createInstance('$barDb');
+                barDbSingletonA = di.getInstance('$barDb');
+                doesNotExist = di.createInstance('$doesNoExist');
+                barDbSingletonB = di.getInstance('$barDb');
+            });
+
+            it('should have create user A', () => {
+                should.exist(userA);
+            });
+
+            it('should have created a new instance from a the Singleton class', () => {
+                newBarDb.should.not.equals(barDbSingletonA);
+                barDbSingletonA.should.equals(barDbSingletonB)
+            });
+
+            it('should not have instantiated a non-existing contract', () => {
+                should.not.exist(doesNotExist);
+            });
         });
     });
 });
