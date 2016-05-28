@@ -51,7 +51,8 @@ or if you also wish to change the role
 
 For more advanced use-cases checkout the [unit tests](https://github.com/scaljeri/javascript-dependency-injection/blob/master/test/di.spec.js)
 file.
-[//]: # (Checkout more detailed the documentation [here](http://scaljeri.github.io/javascript-dependency-injection/classes/DI.html))
+
+You can find a detailed API description + a code-coverage report [here](http://scaljeri.github.io/javascript-dependency-injection/)
 
 #### Installation ####
 
