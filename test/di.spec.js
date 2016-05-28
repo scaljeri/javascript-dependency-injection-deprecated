@@ -89,6 +89,7 @@ describe("DI", () => {
                 userA.storage.should.equals(bardb);
                 userA.role.should.equals('admin');
                 userA.permissions.should.equals('777');
+                userA.should.be.instanceOf(fixtures.User);
             });
 
             it('should have inititalized user B', () => {
@@ -97,6 +98,7 @@ describe("DI", () => {
                 userB.storage.should.equals(foodb);
                 userB.role.should.equals('noob');
                 userB.permissions.should.equals('766');
+                userB.should.be.instanceOf(fixtures.User);
             });
 
             it("should detect circular dependencies", function () {
