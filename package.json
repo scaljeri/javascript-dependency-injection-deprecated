@@ -4,7 +4,7 @@
   "description": "Javscript dependency injection library",
   "main": "di.js",
   "scripts": {
-    "test": "./node_modules/.bin/babel-node ./node_modules/.bin/isparta cover ./node_modules/.bin/_mocha -- --recursive && open ./coverage/lcov-report/index.html",
+    "test": "./node_modules/.bin/babel-node ./node_modules/.bin/isparta cover ./node_modules/.bin/_mocha -- --recursive",
     "doc": "./node_modules/.bin/esdoc -c esdoc.json && open esdoc/index.html"
   },
   "repository": {
