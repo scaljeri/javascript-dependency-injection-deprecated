@@ -74,9 +74,13 @@ it will also open the code-coverage report
 [travis-url]: https://travis-ci.org/scaljeri/javascript-dependency-injection.png
 [travis-image]: https://travis-ci.org/scaljeri/javascript-dependency-injection
 
-[coveralls-url]: https://coveralls.io/repos/scaljeri/javascript-dependency-injection/badge.svg
-[coveralls-image]: https://coveralls.io/r/scaljeri/javascript-dependency-injection
+[coveralls-url]: https://coveralls.io/github/scaljeri/javascript-dependency-injection?branch=master
+[coveralls-image]: https://coveralls.io/repos/github/scaljeri/javascript-dependency-injection/badge.svg?branch=master
 
+[coveralls-urla]: https://coveralls.io/repos/scaljeri/javascript-dependency-injection/badge.svg
+[coveralls-imagea]: https://coveralls.io/r/scaljeri/javascript-dependency-injection
+
+[![Coverage Status](https://coveralls.io/repos/github/scaljeri/javascript-dependency-injection/badge.svg?branch=master)](https://coveralls.io/github/scaljeri/javascript-dependency-injection?branch=master)
 [depstat-url]: https://david-dm.org/scaljeri/javascript-dependency-injection
 [depstat-image]: https://david-dm.org/scaljeri/javascript-dependency-injection.svg
 
