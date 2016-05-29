@@ -6,48 +6,111 @@
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/scaljeri/javascript-dependency-injection?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Javascript Dependency Injection library (ES2015)
+Javascript Dependency Injection (DI) library written in ES2015
 
  DI makes classes accessible by a contract. Instances are created when requested and 
  dependencies are injected into the constructor, facilitating lazy initialization and 
- loose coupling between classes.
-     
- As an example, consider a User and Persitance classes:
+ loose coupling between classes --> maintainable and testable code!!!!
  
-     class FileDB {
-         constructor(fs, tableName, listOfFields) { .... }
-         
-         persist(record) { .... }
+### The Basics     
+ 
+     class Bar {
+         constructor(foo, aux) { this.foo = foo; this.aux = aux; }
      }
      
-     class User {
-         constructor(email, passwd, storage, role) { ... }
-         
-         save() { this.storage.persist(this); }
-     }
- 
- To define the relation between both classes use `DI#register`
- 
-    import fs from 'fs';
-    
-    var di = new DI();
-    
-    di.register('$user', User, [null, 'welcome', '$fileDb', 'nobody']);
-    di.register('$fileDb', FileDb, [fs, 'user', ['email','passwd', 'role']], {singleton: true});
-    
-The 1st argument of `DI#register` is the name of the contract, the 2nd the class reference, the 3rd an array
-of the constructor arguments and the last a config object. Currently ther config has only 2 options
+     class Foo {}
+     
+`Bar` depends on `Foo`. With **DI** you define the relation as follows
 
-    - singleton, it only create the instance once
-    - notAClass, meaning that the reference is not a class
+    di.register('$bar', Bar, ['$foo', 10]); // $bar     - is the name of the contract (can be anything),
+                                            // Bar      - the class reference and
+                                            // ['$foo'] - the list of constructor arguments
+    di.register('$foo', Foo);               // The order of registration is irrelevant (lazy initialization!)
     
-To get instances do
+`$foo` is the magic link here, and replaced during `Bar`s initialization with a `Foo`-instance.
+
+Use `getInstance` to initialize `Bar`
+
+    let bar = di.getInstance('$bar');       // bar instanceof Bar
+
+Thats all!! :)
+
+### Singletons
+ If you want a class to be a singleton, just tell **DI**
+ 
+     di.register('$bar', Bar, [$foo, 10], { singleton: true });
+     
+### Factories
+Sometimes a class produces instances of an other class, for example
+ 
+     class Bar {
+         getFoo() {
+             return new Foo();
+         }
+     }
+     
+In order to rewrite this using DI, Factories come to the rescue 
+
+     class Bar {
+         constructor(fooFactory) { this.fooFactory = fooFactory; }
           
-    di.getInstance('$user', 'test@di.com');
+         getFoo(input) { 
+            return this.fooFactory(input);  
+         }
+     }
+     
+and the relations are now defined as follows
+ 
+     di.register('$bar', Bar, ['$fooFactory']);
+     
+     di.register('$foo', Foo);
+     
+Again, thats all, the factory is created auto magically!
+ 
+If you really want to create a factory yourself, you can
+     
+     di.register('$barFactory', null, ['list', 'of', 'params'], { factoryFor: '$bar' });
+     
+## Parameters (advanced)
+This will be the toughest part, here I had to make some decisions about how parameter
+are inherited. For example
+ 
+     di.register('$bar', Bar, ['p1', 'p2', 'p3', 'p4']);
+     let bar = di.getInstance('$bar', 'p5', 'p6', 'p7');
+     
+The `getInstance` method accepts constructor arguments too, why not :)
+Anyway, the end result here is that `Bar` is initialized with 
     
-or if you also wish to change the role
+      'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'
+      
+The parameters are added. But what if you like to replace the inital parameter?
+  
+     di.register('$bar', Bar, ['p1', 'p2', 'p3', 'p4'], { writable: true });
+     let bar = di.getInstance('$bar', 'p5', 'p6', 'p7');
+ 
+This time the constructor arguments are
+ 
+     'p5', 'p6', 'p7', 'p4'
+     
+So, set `writable` to true and you the initial parameter are replaced if you 
+have defined an alternative. For example, in `writable` mode, you can still
+simulate parameter concatination
+ 
+     let bar = di.getInstance('$bar', undefined, undefined, undefined, undefined, 'p5', 'p6', 'p7');
+     
+Not very beautiful, so maybe you should not do this :)
+  
+With factories, you have this behavior too, but also a 3rd step. Check this out
 
-    di.getInstance('$user', 'test@di.com', null, null, 'admin');
+    di.register('$barFactory', null, ['p1', 'p2', 'p3', 'p4', 'p5'], { factoryFor: '$bar' });
+    let barFactory = di.getInstance('$barFactory', 'p6', 'p7');
+    let bar = barFactory('p8', 'p9');  // bar is initialized with 'p1', 'p2', ...., 'p9'
+    
+## Not a Class
+What if a class depends on something which is not a class, for example a simple function 
+or an object. In such case you have to tell **DI** about this
+
+    di.register('$fs', fs, { notAClass: true });
 
 For more advanced use-cases checkout the [unit tests](https://github.com/scaljeri/javascript-dependency-injection/blob/master/test/di.spec.js)
 file.
