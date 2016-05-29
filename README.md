@@ -22,9 +22,9 @@ Javascript Dependency Injection (DI) library written in ES2015
      
 `Bar` depends on `Foo`. With **DI** you define the relation as follows
 
-    di.register('$bar', Bar, ['$foo', 10]); // $bar     - is the name of the contract (can be anything),
-                                            // Bar      - the class reference and
-                                            // ['$foo'] - the list of constructor arguments
+    di.register('$bar', Bar, ['$foo', 10]); // $bar         - is the name of the contract (can be anything),
+                                            // Bar          - the class reference and
+                                            // ['$foo', 10] - the list of constructor arguments
     di.register('$foo', Foo);               // The order of registration is irrelevant (lazy initialization!)
     
 `$foo` is the magic link here, and replaced during `Bar`s initialization with a `Foo`-instance.
@@ -78,8 +78,8 @@ are inherited. For example
      di.register('$bar', Bar, ['p1', 'p2', 'p3', 'p4']);
      let bar = di.getInstance('$bar', 'p5', 'p6', 'p7');
      
-The `getInstance` method accepts constructor arguments too, why not :)
-Anyway, the end result here is that `Bar` is initialized with 
+The `getInstance` method accepts constructor arguments too. 
+`Bar` is initialized with 
     
       'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'
       
@@ -92,13 +92,8 @@ This time the constructor arguments are
  
      'p5', 'p6', 'p7', 'p4'
      
-So, set `writable` to true and you the initial parameter are replaced if you 
-have defined an alternative. For example, in `writable` mode, you can still
-simulate parameter concatination
- 
-     let bar = di.getInstance('$bar', undefined, undefined, undefined, undefined, 'p5', 'p6', 'p7');
-     
-Not very beautiful, so maybe you should not do this :)
+Important note here is that the initial parameter is only replaced if the 
+new parameter is not equal to `undefined`. 
   
 With factories, you have this behavior too, but also a 3rd step. Check this out
 
