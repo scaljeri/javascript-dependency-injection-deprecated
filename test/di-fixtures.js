@@ -1,44 +1,28 @@
-class BaseDb  {
-    constructor(name, fieldList, handle, recordFactory) {
-        this.name = name;
-        this.fieldList = fieldList;
-        this.handle = handle;
-        this.recordFactory = recordFactory;
-    }
+/*
+The story:
 
-    persist() {}
+A factory builds engines. And engine consists of parts. Users work
+for this factory and have different roles (employee, boss, etc).
+There is an inventory of available parts. If needed, new parts
+can be ordered (placeOrder)
+
+ */
+
+export class MachineFactory {
+    constructor() { this.args = arguments; }
 }
 
-export class BarDB extends BaseDb {
-    constructor(name, fieldList, handle, recordFactory) {
-        super(name, fieldList, handle, recordFactory);
-    }
+export class Engine {
+    constructor() { this.args = arguments; }
 }
 
-export class RecordDb {
-    constructor(fields, types) {}
+export class EnginePart {
+    constructor() { this.args = arguments; }
 }
-
-export class FooDB extends BaseDb {
-    constructor(name, fieldList, handle) {
-        super(name, fieldList, handle);
-    }
-}
-
 export class User {
-    constructor(email, passwd, storage, role, permissions=711) {
-        this.permissions = permissions;
-        this.email = email;
-        this.passwd = passwd;
-        this.storage = storage;
-        this.role = role;
-    }
-
-    save() {
-        this.storage.persist(this);
-    }
+    constructor() { this.args = arguments; }
 }
 
-let handleFooDB = {};
-function handleBarDB() {}
-export { handleBarDB, handleFooDB };
+let inventory = {};
+function placeOrder() { this.args = arguments; }
+export { inventory, placeOrder };

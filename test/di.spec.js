@@ -16,156 +16,138 @@ describe("DI", () => {
     });
 
     it('should habe no contracts', () => {
-        Object.keys(di._contracts).should.be.of.length(0);
+        Object.keys(di.contracts).should.be.of.length(0);
     });
 
     describe('#register', () => {
         beforeEach(() => {
-            di.register('$userA', fixtures.User, ['user-a@test.com', 'welcome', '$barDb'])
-                    .register('$userB', fixtures.User, [null, 'welcome', '$fooDb', 'noob'])
-                    .register('$barDb', fixtures.BarDB, ['userTable', ['email', 'passwd', 'role'], fixtures.handleBarDB, '$recordDbFactory'], {singleton: true})
-                    .register('$fooDb', fixtures.FooDB, ['userTable', ['email', 'passwd', 'role'], '$handleFooDb'], {singleton: true})
-                    .register('$handleFooDb', fixtures.handleFooDB, {notAClass: true})
-                    .register('$recordDb', fixtures.RecordDb, [['email, passwd, role'], ['string', 'string', 'string']])
-                    .register('$myFactory', null, ['factory@chai.com', 'noPassword', null, null, '000'], {factoryFor: '$userB'});
-        });
+            di.register('$machineFactory', fixtures.MachineFactory, ['Tesla', '$engineFactory', '$inventory'], {singleton: true})
+                    .register('$engine', fixtures.Engine, ['Model S', 'pk', 'mph', ['p1', 'p2', '$enginePartFactory']], { writable: true})
+                    .register('$engineModelS', fixtures.Engine, ['Model S', 'pk', 'mph'])
+                    .register('$enginePart', fixtures.EnginePart)
+                    .register('$enginePartFactoryModelS', null, ['oil'], {factoryFor: '$enginePart'})
+                    .register('$enginePartFactoryModelX', null, ['oil'], {factoryFor: '$enginePart', writable: true})
+                    .register('$user', fixtures.User, [,,'welcome', 'employee', '711'], {writable: true})
+                    .register('$inventory', fixtures.inventory, {notAClass: true})
+                    .register('$placeOrder', fixtures.placeOrder, {notAClass: true});
 
-        it('should be chainable', function () {
-            di.register("$test", fixtures.User, ['a', 'b']).should.eql(di);
         });
 
         it('should be possible to replace an existing contract', () => {
-            let NewUser = function () {};
+            di.contracts['$user'].should.be.defined;
+            di.register('$user', function (){}, {});
 
-            di._contracts['$userA'].should.be.defined;
-            di.register('$userA', NewUser, {});
-
-            di._contracts['$userA'].classRef.should.equals(NewUser);
+            di.contracts['$user'].classRef.should.not.equals(fixtures.User);
         });
 
         it('should contain contracts + factory contracts', () => {
-            Object.keys(di._contracts).should.be.of.length(13);
-        });
-
-        it('should have 2 $user contracts', () => {
-            di._contracts['$userA'].should.be.defined;
-            di._contracts['$userA'].classRef.should.equals(fixtures.User);
-
-            di._contracts['$userB'].should.be.defined;
-            di._contracts['$userB'].classRef.should.equals(fixtures.User);
-        });
-
-        it('should have 2 $user factory contracts', () => {
-            di._contracts['$userAFactory'].should.be.defined;
-            di._contracts['$userAFactory'].options.factoryFor.should.equals('$userA');
-
-            di._contracts['$userBFactory'].should.be.defined;
-            di._contracts['$userBFactory'].options.factoryFor.should.equals('$userB');
-        });
-
-        it('should have a $bardb contract', () => {
-            di._contracts['$barDb'].should.be.defined;
-            di._contracts['$barDb'].classRef.should.equals(fixtures.BarDB);
-        });
-
-        it('should have a $foodb contract', () => {
-            di._contracts['$fooDb'].should.be.defined;
-            di._contracts['$fooDb'].classRef.should.equals(fixtures.FooDB);
-        });
-
-        it('should have a $handleFooDb contract', () => {
-            di._contracts['$handleFooDb'].should.be.defined;
-            di._contracts['$handleFooDb'].classRef.should.equals(fixtures.handleFooDB);
-            di._contracts['$handleFooDb'].options.notAClass.should.be.ok;
+            di.contracts['$user'].should.be.defined;
+            di.contracts['$userFactory'].should.be.defined;
         });
 
         describe('#getInstance', () => {
-            let userA, userB, barDb, fooDb, noOptions;
+            let factory, engineModelX, engineModelS, employee, boss, inventory, placeOrder;
 
             beforeEach(() => {
-                userA = di.getInstance('$userA', null, null, null, 'admin', '777');
-                userB = di.getInstance('$userB', 'user-b@test.com', null, null, null, '766');
-                barDb = di.getInstance('$barDb');
-                fooDb = di.getInstance('$fooDb');
-
-                di.register('$noOptions', fixtures.User);
-                noOptions = di.getInstance('$noOptions');
+                factory = di.getInstance('$machineFactory', 'Elon Musk', 8000);
+                engineModelS = di.getInstance('$engineModelS', 'min', 'max');
+                engineModelX = di.getInstance('$engine', 'pkt', undefined, 'min');
+                employee = di.getInstance('$user', 'John Doe', 'johndoe@tesla.com');
+                boss = di.getInstance('$user', 'Elon Musk', 'elon@tesla.com', undefined, 'boss', '777');
+                inventory = di.getInstance('$inventory');
+                placeOrder = di.getInstance('$placeOrder');
             });
 
-            it('should work without options', () => {
-                noOptions.should.be.instanceOf(fixtures.User);
+            it('should create instance without options', () => {
+                inventory.should.equals(fixtures.inventory);
             });
 
-            it('should return null if contract doesn\'t exist', () => {
+            it('should return the name of the contract if it doesn\'t exist', () => {
                 di.getInstance('$doesNotExist').should.equals('$doesNotExist');
             });
 
-            it('should have initialized user A', () => {
-                userA.email.should.equals('user-a@test.com');
-                userA.passwd.should.equals('welcome');
-                userA.storage.should.equals(barDb);
-                userA.role.should.equals('admin');
-                userA.permissions.should.equals('777');
-                userA.should.be.instanceOf(fixtures.User);
+            it('should have created an instance without options (factory)', ()=> {
+                factory.args[0].should.equals('Tesla');
+                factory.args[1].should.be.instanceOf(Function);
+                factory.args[2].should.equals(fixtures.inventory);
+                factory.args[3].should.equals('Elon Musk');
+                factory.args[4].should.equals(8000);
             });
 
-            it('should have inititalized user B', () => {
-                userB.email.should.equals('user-b@test.com');
-                userB.passwd.should.equals('welcome');
-                userB.storage.should.equals(fooDb);
-                userB.role.should.equals('noob');
-                userB.permissions.should.equals('766');
-                userB.should.be.instanceOf(fixtures.User);
+            it('should have initialized the boss', () => {
+                boss.args[0].should.equals('Elon Musk');
+                boss.args[1].should.equals('elon@tesla.com');
+                boss.args[2].should.equals('welcome');
+                boss.args[3].should.equals('boss');
+                boss.args[4].should.equals('777');
+            });
+
+            it('should have initialized the employee', () => {
+                employee.args[0].should.equals('John Doe');
+                employee.args[1].should.equals('johndoe@tesla.com');
+                employee.args[2].should.equals('welcome');
+                employee.args[3].should.equals('employee');
+                employee.args[4].should.equals('711');
+            });
+
+            it('should have processed array arguments with contracts', () => {
+                engineModelX.args[3][0].should.equals('p1');
+                engineModelX.args[3][1].should.equals('p2');
+                engineModelX.args[3][2].should.be.a('function');
+                engineModelX.args[3][2]().should.be.instanceOf(fixtures.EnginePart);
             });
 
             it("should detect circular dependencies", function () {
-                di.register('$barDb', {}, ['$userA']);
+                di.register('$user', function () {}, ['$user']);
 
                 (() => {
-                    di.getInstance('$userA');
-                }).should.throw(Error, /Circular dependency detected for contract \$userA/);
+                    di.getInstance('$user');
+                }).should.throw(Error, /Circular dependency detected for contract \$user/);
             });
 
             describe('Factory', () => {
-                let myFactory, newUser;
+                let userFactory, newUser, enginePartFactory, newModelS;
+
                 beforeEach(() => {
-                    myFactory = di.getInstance('$myFactory', 'abc@def.ghi', null, null, null, '111');
-                    newUser = myFactory('new@mail.com');
-                });
-                
-                it('should inject', () => {
-                    barDb.recordFactory.should.be.defined;
-                    barDb.recordFactory().should.be.instanceOf(fixtures.RecordDb);
+                    // writable === true
+                    userFactory = di.getInstance('$userFactory', 'default', 'default@mail.com', 'secret', undefined, '111');
+                    newUser = userFactory('Lucas Calje', undefined, undefined, 'admin');
+
+                    // writable === false
+                    enginePartFactory = di.getInstance('$enginePartFactoryModelS', 'hoses');
+                    newModelS = enginePartFactory('cylinder', 'pistons');
                 });
 
                 it('should create a user', () => {
                     newUser.should.be.instanceOf(fixtures.User);
-                    newUser.email.should.equals('new@mail.com');
-                    newUser.passwd.should.equals('welcome');
-                    newUser.storage.should.be.instanceOf(fixtures.FooDB);
-                    newUser.role.should.equals('noob');
-                    newUser.permissions.should.equals('111');
+                });
+
+                it('should have updated params', () => {
+                    newUser.args[0].should.equals('Lucas Calje') ;
+                    newUser.args[1].should.equals('default@mail.com') ;
+                    newUser.args[2].should.equals('secret') ;
+                    newUser.args[3].should.equals('admin') ;
+                });
+
+                it('should ingore params if not writable', () => {
+                    newModelS.args[0].should.equals('oil');
                 });
             });
 
             describe('Recreate a singleton', () => {
-                let oldSingleton, newSingleton;
+                let newFactory, newFactoryWithParams;
 
                 beforeEach(() => {
-                    oldSingleton = di.getInstance('$barDb'); // Create singleton
-                    newSingleton = di.getInstance('$barDb', null, ['e', 'p', 'r']); // Re-create singleton because of the new params
+                    newFactory = di.getInstance('$machineFactory');
+                    newFactoryWithParams = di.getInstance('$machineFactory', 'all models');
                 });
 
                 it('should have create a new singleton', () => {
-                    oldSingleton.should.not.equals(newSingleton);
+                    factory.should.equals(newFactory);
                 });
 
-                it('should have updated the params', () => {
-                    newSingleton = di.getInstance('$barDb');
-
-                    newSingleton.name.should.equals('userTable');
-                    newSingleton.fieldList.should.eql(['e', 'p', 'r']);
-                    newSingleton.handle.should.equals(fixtures.handleBarDB);
+                it('should create new Singleton', () => {
+                   factory.should.not.equals(newFactoryWithParams);
                 });
             });
         });
