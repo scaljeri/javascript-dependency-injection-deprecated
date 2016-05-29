@@ -102,7 +102,7 @@ With factories, you have this behavior too, but also a 3rd step. Check this out
     let bar = barFactory('p8', 'p9');  // bar is initialized with 'p1', 'p2', ...., 'p9'
     
 ## Not a Class
-What if a class depends on something which is not a class, for example a simple function 
+What if a class depends on something which is not a class instance, for example a function 
 or an object. In such case you have to tell **DI** about this
 
     di.register('$fs', fs, { notAClass: true });
@@ -110,7 +110,7 @@ or an object. In such case you have to tell **DI** about this
 For more advanced use-cases checkout the [unit tests](https://github.com/scaljeri/javascript-dependency-injection/blob/master/test/di.spec.js)
 file.
 
-You can find a detailed API description + a code-coverage report [here](http://scaljeri.github.io/javascript-dependency-injection/)
+You can find a detailed API description + the code-coverage report [here](http://scaljeri.github.io/javascript-dependency-injection/)
 
 #### Installation ####
 
