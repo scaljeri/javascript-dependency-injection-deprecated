@@ -59,13 +59,14 @@ export default class DI {
      **/
     constructor() {
         /** @private
-         *
+         *  Used to check for circular dependencies
          * @type {Array}
          */
-        this.depCheck = []; // used to check for circular dependencies
+        this.depCheck = [];
 
         /**
          * @private
+         * Used to store all the registered contracts
          * @type {{}}
          */
         this.contracts = {};
@@ -83,7 +84,7 @@ export default class DI {
      * @param {Array} [params] list of constructor parameters. Only if a parameter is a string and matches a contract, it
      * will be replaced with the corresponding instance
      * @param {Object} [options] configuration
-     *      @param {String} [options.notAClass=true] whether or not the reference is a class or not
+     *      @param {String} [options.isClass=true] whether or not the reference is a class or not
      *      @param {String} [options.singleton=false] create a new instance every time
      *      @param {String} [options.factoryFor] name of the contract for which it is a factory
      *      @param {String} [options.writable=false]  append (=false) or replace (=true) construtor arguments
@@ -100,16 +101,24 @@ export default class DI {
             params = [];
         }
 
+        if (options.isClass === undefined) 
+        {
+            options.isClass = true;
+        }
+
         // --debug-start--
-        if (!classRef) {
-            if (!options.factoryFor) {
+        if (!classRef) 
+        {
+            if (!options.factoryFor) 
+            {
                 console.warn(`#register(${contractStr}): 'classRef' is not defined`);
             }
-        } else if (typeof(classRef) !== 'function' && !options.notAClass) {
-            console.warn(`#register(${contractStr}): 'classRef' is not a function, make sure to set 'options.notAClass = true'`);
+        } else if (typeof(classRef) !== 'function' && options.isClass) {
+            console.warn(`#register(${contractStr}): 'classRef' is not a function, make sure to set 'options.isClass = false'`);
         }
-        if (options.notAClass && options.writable) {
-            console.warn(`#register(${contractStr}): The options 'writbale' and 'notAClass' cannot be combined`);
+        if (!options.isClass && options.writable) 
+        {
+            console.warn(`#register(${contractStr}): The options 'writbale' and 'isClass' cannot be combined`);
         }
         // --debug-end--
 
@@ -120,7 +129,8 @@ export default class DI {
         };
 
         // Prepare factory
-        if (!options.factoryFor) {
+        if (!options.factoryFor) 
+        {
             this.contracts[`${contractStr}Factory`] = {
                 options: {
                     factoryFor: contractStr
@@ -148,27 +158,34 @@ export default class DI {
      ajax = App.di.getInstance("ajax", "rest", true) ;
      **/
     getInstance(contractStr, ...params) {
-        let instance = null,
-                contract = this.contracts[contractStr];
+        let instance = null
+            , contract = this.contracts[contractStr];
 
-        if (contract) {
-            if (contract.options.singleton) {
-                instance = this.getSingletonInstance(contractStr, params);
-            } else //create a new instance every time
+        if (contract) 
+        {
+            if (contract.options.singleton)
             {
-                if (contract.options.notAClass) {
+                instance = this.getSingletonInstance(contractStr, params);
+            }
+            else //create a new instance every time
+            {
+                if (contract.options.factoryFor)
+                {
+                    instance = this.createFactory(contractStr, params);
+                }
+                else if (!contract.options.isClass)
+                {
                     instance = contract.classRef;
 
                     // --debug-start--
-                    if (params.length > 0) {
-                        console.warn(`#getInstance(${contractStr}): 'params' is ignored because 'notAClass' is defined`);
+                    if (params.length > 0)
+                    {
+                        console.warn(`#getInstance(${contractStr}): 'params' is ignored because it is not a class`);
                     }
                     // --debug-end--
                 }
-                else if (contract.options.factoryFor) {
-                    instance = this.createFactory(contractStr, params);
-                }
-                else {
+                else
+                {
                     instance = this.createInstance(contractStr, params);
                 }
             }
@@ -184,9 +201,8 @@ export default class DI {
      * @returns {function()}
      */
     createFactory(contractStr, initialParams) {
-        let contract = this.contracts[contractStr];
-
-        let baseParams = this.mergeParams(contract, initialParams);
+        let contract = this.contracts[contractStr]
+            , baseParams = this.mergeParams(contract, initialParams);
 
         return (...params) => {
             return this.getInstance(contract.options.factoryFor, ...this.mergeParams(contract, params, baseParams));
@@ -203,12 +219,14 @@ export default class DI {
 
         initialParams = initialParams.length === 0 ? contract.params : initialParams;
 
-        if (contract.options.writable) {
+        if (contract.options.writable)
+        {
             for (let i = 0; i < Math.max(newParams.length, initialParams.length); i++) {
                 mergedParams.push(newParams[i] === undefined ? initialParams[i] : newParams[i]);
             }
         }
-        else {
+        else
+        {
             mergedParams = [...initialParams, ...newParams];
         }
 
@@ -230,8 +248,8 @@ export default class DI {
      **/
     createInstance(contractStr, params) {
         let cr, instance
-                , self = this
-                , contract = this.contracts[contractStr];
+            , self = this
+            , contract = this.contracts[contractStr];
 
         function Dependency() {
             cr.apply(this, self.createInstanceList(contractStr, params));
@@ -256,11 +274,12 @@ export default class DI {
      * */
     createInstanceList(contractStr, params) {
         let constParams = []
-                , contract = this.contracts[contractStr]
-                , mergedParams = this.mergeParams(contract, params);
+            , contract = this.contracts[contractStr]
+            , mergedParams = this.mergeParams(contract, params);
 
         mergedParams.forEach((item) => {
-            if (Array.isArray(item)) {
+            if (Array.isArray(item))
+            {
                 constParams.push(item.reduce(
                         (list, val) => {
                             list.push(this.getInstance(val));
@@ -268,7 +287,8 @@ export default class DI {
                             return list;
                         }, []));
             }
-            else {
+            else
+            {
                 constParams.push(this.createInstanceIfContract(item));
             }
         });
@@ -281,10 +301,11 @@ export default class DI {
      * Create or reuse a singleton instance
      */
     getSingletonInstance(contractStr, params) {
-        let contract = this.contracts[contractStr],
-                mergedParams = this.mergeParams(contract, params);
+        let contract = this.contracts[contractStr]
+            , mergedParams = this.mergeParams(contract, params);
 
-        if (contract.instance === undefined || (params && params.length > 0)) {
+        if (contract.instance === undefined || (params && params.length > 0))
+        {
             contract.params = mergedParams;
             contract.instance = this.createInstance(contractStr);
         }
@@ -299,7 +320,7 @@ export default class DI {
      */
     createInstanceIfContract(contractStr) {                                     // is a contract
         let problemContract
-                , constParam = contractStr;
+            , constParam = contractStr;
 
         if (typeof(contractStr) === 'string' && this.contracts[contractStr])  // is 'contract' just a contructor parameter or a contract?
         {
@@ -308,7 +329,8 @@ export default class DI {
                 constParam = this.getInstance(contractStr);                    // create the instance
                 this.depCheck.pop();                                           // done, remove dependency from the list
             }
-            else { // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!
+            else
+            { // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!
                 problemContract = this.depCheck[0];
                 this.depCheck.length = 0;                                      // cleanup
                 throw Error("Circular dependency detected for contract " + problemContract);

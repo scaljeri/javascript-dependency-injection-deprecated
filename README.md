@@ -20,14 +20,14 @@ Javascript Dependency Injection (DI) library written in ES2015
      
      class Foo {}
      
-`Bar` depends on `Foo`. With **DI** you define the relation as follows
+`Bar` depends on `Foo`. With **DI** you define this relation as follows
 
     di.register('$bar', Bar, ['$foo', 10]); // $bar         - is the name of the contract (can be anything),
                                             // Bar          - the class reference and
                                             // ['$foo', 10] - the list of constructor arguments
     di.register('$foo', Foo);               // The order of registration is irrelevant (lazy initialization!)
     
-`$foo` is the magic link here, and replaced during `Bar`s initialization with a `Foo`-instance.
+`$foo` is the magic link here, and replaced during `Bar`\`s initialization with a `Foo`-instance.
 
 Use `getInstance` to initialize `Bar`
 
@@ -105,7 +105,7 @@ With factories, you have this behavior too, but also a 3rd step. Check this out
 What if a class depends on something which is not a class instance, for example a function 
 or an object. In such case you have to tell **DI** about this
 
-    di.register('$fs', fs, { notAClass: true });
+    di.register('$fs', fs, { isClass: false });
 
 For more advanced use-cases checkout the [unit tests](https://github.com/scaljeri/javascript-dependency-injection/blob/master/test/di.spec.js)
 file.

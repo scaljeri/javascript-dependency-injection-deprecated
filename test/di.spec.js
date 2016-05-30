@@ -28,8 +28,8 @@ describe("DI", () => {
                     .register('$enginePartFactoryModelS', null, ['oil'], {factoryFor: '$enginePart'})
                     .register('$enginePartFactoryModelX', null, ['oil'], {factoryFor: '$enginePart', writable: true})
                     .register('$user', fixtures.User, [,,'welcome', 'employee', '711'], {writable: true})
-                    .register('$inventory', fixtures.inventory, {notAClass: true})
-                    .register('$placeOrder', fixtures.placeOrder, {notAClass: true});
+                    .register('$inventory', fixtures.inventory, {isClass: false})
+                    .register('$placeOrder', fixtures.placeOrder, {isClass: false});
 
         });
 
