@@ -62,8 +62,8 @@ describe("DI", () => {
                 inventory.should.equals(fixtures.inventory);
             });
 
-            it('should return the name of the contract if it doesn\'t exist', () => {
-                di.getInstance('$doesNotExist').should.equals('$doesNotExist');
+            it('should return null if it doesn\'t exist', () => {
+                should.not.exist(di.getInstance('$doesNotExist'));
             });
 
             it('should have created an instance without options (factory)', ()=> {

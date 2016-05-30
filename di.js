@@ -174,7 +174,7 @@ export default class DI {
             }
         }
 
-        return instance || contractStr;
+        return instance || (this.depCheck.length === 0 ? null : contractStr);
     }
 
     /**
