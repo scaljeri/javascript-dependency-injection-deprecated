@@ -84,7 +84,6 @@ export default class DI {
      * @param {Array} [params] list of constructor parameters. Only if a parameter is a string and matches a contract, it
      * will be replaced with the corresponding instance
      * @param {Object} [options] configuration
-     *      @param {String} [options.isClass=true] whether or not the reference is a class or not
      *      @param {String} [options.singleton=false] create a new instance every time
      *      @param {String} [options.factoryFor] name of the contract for which it is a factory
      *      @param {String} [options.writable=false]  append (=false) or replace (=true) construtor arguments
@@ -101,11 +100,6 @@ export default class DI {
             params = [];
         }
 
-        if (options.isClass === undefined) 
-        {
-            options.isClass = true;
-        }
-
         // --debug-start--
         if (!classRef) 
         {
@@ -113,12 +107,8 @@ export default class DI {
             {
                 console.warn(`#register(${contractStr}): 'classRef' is not defined`);
             }
-        } else if (typeof(classRef) !== 'function' && options.isClass) {
-            console.warn(`#register(${contractStr}): 'classRef' is not a function, make sure to set 'options.isClass = false'`);
-        }
-        if (!options.isClass && options.writable) 
-        {
-            console.warn(`#register(${contractStr}): The options 'writbale' and 'isClass' cannot be combined`);
+        } else if (typeof(classRef) !== 'function') {
+            console.warn(`#register(${contractStr}): 'classRef' is not a function`);
         }
         // --debug-end--
 
@@ -172,17 +162,6 @@ export default class DI {
                 if (contract.options.factoryFor)
                 {
                     instance = this.createFactory(contractStr, params);
-                }
-                else if (!contract.options.isClass)
-                {
-                    instance = contract.classRef;
-
-                    // --debug-start--
-                    if (params.length > 0)
-                    {
-                        console.warn(`#getInstance(${contractStr}): 'params' is ignored because it is not a class`);
-                    }
-                    // --debug-end--
                 }
                 else
                 {

@@ -21,15 +21,13 @@ describe("DI", () => {
 
     describe('#register', () => {
         beforeEach(() => {
-            di.register('$machineFactory', fixtures.MachineFactory, ['Tesla', '$engineFactory', '$inventory'], {singleton: true})
+            di.register('$machineFactory', fixtures.MachineFactory, ['Tesla', '$engineFactory', fixtures.inventory], {singleton: true})
                     .register('$engine', fixtures.Engine, ['Model S', 'pk', 'mph', ['p1', 'p2', '$enginePartFactory']], { writable: true})
                     .register('$engineModelS', fixtures.Engine, ['Model S', 'pk', 'mph'])
                     .register('$enginePart', fixtures.EnginePart)
                     .register('$enginePartFactoryModelS', null, ['oil'], {factoryFor: '$enginePart'})
                     .register('$enginePartFactoryModelX', null, ['oil'], {factoryFor: '$enginePart', writable: true})
-                    .register('$user', fixtures.User, [,,'welcome', 'employee', '711'], {writable: true})
-                    .register('$inventory', fixtures.inventory, {isClass: false})
-                    .register('$placeOrder', fixtures.placeOrder, {isClass: false});
+                    .register('$user', fixtures.User, [,,'welcome', 'employee', '711'], {writable: true});
 
         });
 
@@ -46,7 +44,7 @@ describe("DI", () => {
         });
 
         describe('#getInstance', () => {
-            let factory, engineModelX, engineModelS, employee, boss, inventory, placeOrder;
+            let factory, engineModelX, engineModelS, employee, boss, inventory, noOpts;
 
             beforeEach(() => {
                 factory = di.getInstance('$machineFactory', 'Elon Musk', 8000);
@@ -55,11 +53,11 @@ describe("DI", () => {
                 employee = di.getInstance('$user', 'John Doe', 'johndoe@tesla.com');
                 boss = di.getInstance('$user', 'Elon Musk', 'elon@tesla.com', undefined, 'boss', '777');
                 inventory = di.getInstance('$inventory');
-                placeOrder = di.getInstance('$placeOrder');
             });
 
             it('should create instance without options', () => {
-                inventory.should.equals(fixtures.inventory);
+                di.register('$noOpts', fixtures.User);
+                di.getInstance('$noOpts').should.be.instanceOf(fixtures.User);
             });
 
             it('should return null if it doesn\'t exist', () => {

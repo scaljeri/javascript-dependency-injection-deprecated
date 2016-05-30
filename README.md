@@ -39,9 +39,10 @@ Thats all!! :)
  If you want a class to be a singleton, just tell **DI**
  
      di.register('$bar', Bar, [$foo, 10], { singleton: true });
+     // di.getInstance('$bar') === di.getInstance('$bar')
      
 ### Factories
-Sometimes a class produces instances of an other class, for example
+A class can produces instances of an other class
  
      class Bar {
          getFoo() {
@@ -71,19 +72,18 @@ If you really want to create a factory yourself, you can
      
      di.register('$barFactory', null, ['list', 'of', 'params'], { factoryFor: '$bar' });
      
-## Parameters (advanced)
-This will be the toughest part, here I had to make some decisions about how parameter
-are inherited. For example
+## Parameters
+Now things get a bit tricky, because parameters can be set at different places and
+some kind of parameter-inheritance happens. For example
  
      di.register('$bar', Bar, ['p1', 'p2', 'p3', 'p4']);
      let bar = di.getInstance('$bar', 'p5', 'p6', 'p7');
      
-The `getInstance` method accepts constructor arguments too. 
-`Bar` is initialized with 
+The `getInstance` method accepts constructor arguments too. `Bar` is initialized with 
     
       'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'
       
-The parameters are added. But what if you like to replace the inital parameter?
+The parameters are added. But what if you like to replace the initial parameter?
   
      di.register('$bar', Bar, ['p1', 'p2', 'p3', 'p4'], { writable: true });
      let bar = di.getInstance('$bar', 'p5', 'p6', 'p7');
@@ -92,21 +92,16 @@ This time the constructor arguments are
  
      'p5', 'p6', 'p7', 'p4'
      
-Important note here is that the initial parameter is only replaced if the 
-new parameter is not equal to `undefined`. 
+Important note here is that an initial parameter is only replaced if the 
+new parameter not equals `undefined`. 
   
-With factories, you have this behavior too, but also a 3rd step. Check this out
+With factories, you have this behavior too, but also an extra inheritance layer. 
+Check this out
 
     di.register('$barFactory', null, ['p1', 'p2', 'p3', 'p4', 'p5'], { factoryFor: '$bar' });
     let barFactory = di.getInstance('$barFactory', 'p6', 'p7');
     let bar = barFactory('p8', 'p9');  // bar is initialized with 'p1', 'p2', ...., 'p9'
     
-## Not a Class
-What if a class depends on something which is not a class instance, for example a function 
-or an object. In such case you have to tell **DI** about this
-
-    di.register('$fs', fs, { isClass: false });
-
 For more advanced use-cases checkout the [unit tests](https://github.com/scaljeri/javascript-dependency-injection/blob/master/test/di.spec.js)
 file.
 
