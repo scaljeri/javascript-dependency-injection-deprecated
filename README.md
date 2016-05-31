@@ -113,6 +113,10 @@ Install the dependencies as follows
 
     $> npm install --save javascript-dependency-injection@beta
     
+or
+
+    $> bower install javascript-dependency-injection#2.0.0-beta.6
+    
 #### Unit testing ####
 
     $> npm test
