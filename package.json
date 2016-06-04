@@ -2,10 +2,12 @@
   "name": "javascript-dependency-injection",
   "version": "2.0.0-beta.6",
   "description": "Javscript dependency injection library",
-  "main": "di.js",
+  "main": "dist/di.js",
   "scripts": {
+    "build": "./node_modules/.bin/babel di.js --out-dir dist",
+    "doc": "./node_modules/.bin/esdoc -c esdoc.json && open esdoc/index.html",
     "test": "./node_modules/.bin/babel-node ./node_modules/.bin/isparta cover ./node_modules/.bin/_mocha -- --recursive",
-    "doc": "./node_modules/.bin/esdoc -c esdoc.json && open esdoc/index.html"
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
