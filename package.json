@@ -1,6 +1,6 @@
 {
   "name": "javascript-dependency-injection",
-  "version": "2.0.0-beta.6",
+  "version": "2.0.0-beta.7",
   "description": "Javscript dependency injection library",
   "main": "dist/di.js",
   "scripts": {
