@@ -1,3 +1,8 @@
-esdoc
+esdoc*
 test
 di.js
+.jshintrc
+.babelrc
+.travis.yml
+coverage
+.idea
