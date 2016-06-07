@@ -6,3 +6,5 @@ di.js
 .travis.yml
 coverage
 .idea
+.npmignore
+bower.json
