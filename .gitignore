@@ -5,3 +5,4 @@ node_modules
 /doc/
 /.coveralls.yml
 coverage
+dist
