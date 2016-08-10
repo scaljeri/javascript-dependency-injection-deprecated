@@ -6,37 +6,44 @@
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/scaljeri/javascript-dependency-injection?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Javascript Dependency Injection (DI) library written in ES2015
+## Javascript Dependency Injection (DI) library written in ES2015
 
- DI makes classes accessible by a contract. Instances are created when requested and 
+ **DI** makes classes accessible by a contract. Instances are created when requested and 
  dependencies are injected into the constructor, facilitating lazy initialization and 
  loose coupling between classes --> maintainable and testable code!!!!
  
 ### The Basics     
  
+Consider the following situation in which the class `Bar` depends on `Foo`
+
      class Bar {
-         constructor(foo, aux) { this.foo = foo; this.aux = aux; }
+         constructor($foo, val) { this.foo = $foo; this.val = val }
      }
      
      class Foo {}
      
-`Bar` depends on `Foo`. With **DI** you define this relation as follows
+These classes can be registed as follows
 
-    di.register('$bar', Bar, ['$foo', 10]); // $bar         - is the name of the contract (can be anything),
+    di.register('$bar', Bar);               // $bar         - is the name of the contract (can be anything),
                                             // Bar          - the class reference and
-                                            // ['$foo', 10] - the list of constructor arguments
     di.register('$foo', Foo);               // The order of registration is irrelevant (lazy initialization!)
     
-`$foo` is the magic link here, and replaced during `Bar`\`s initialization with a `Foo`-instance.
+Finaly, use `getInstance` to initialize `Bar`
 
-Use `getInstance` to initialize `Bar`
+    let bar = di.getInstance('$bar', 10);   // bar instanceof Bar
+                                            // bar.foo instanceOf Foo -> true
+                                            // bar.va === 10
+    
+**DI** knows how to initiate `Bar` by inspecting the constructor arguments. 
+Each argument is mapped against the list of contracts and because `$foo` is in that list it is replaced with 
+an instance of `Foo`
 
-    let bar = di.getInstance('$bar');       // bar instanceof Bar
+If you like to be more explicit in the way you define the relations, you can define the constructor youself
 
-Thats all!! :)
-
+    di.register('$bar', Foo, ['$foo']);
+    
 ### Singletons
- If you want a class to be a singleton, just tell **DI**
+If you need a class to be a singleton, just tell **DI**
  
      di.register('$bar', Bar, [$foo, 10], { singleton: true });
      // di.getInstance('$bar') === di.getInstance('$bar')
@@ -46,7 +53,7 @@ A class can produces instances of an other class
  
      class Bar {
          getFoo() {
-             return new Foo();
+             return new Foo(this.input);
          }
      }
      
@@ -56,7 +63,7 @@ In order to rewrite this using DI, Factories come to the rescue
          constructor(fooFactory) { this.fooFactory = fooFactory; }
           
          getFoo(input) { 
-            return this.fooFactory(input);  
+            return this.fooFactory(this.input);  
          }
      }
      
@@ -66,7 +73,7 @@ and the relations are now defined as follows
      
      di.register('$foo', Foo);
      
-Again, thats all, the factory is created auto magically!
+That's all, the factory is created auto magically!
  
 If you really want to create a factory yourself, you can
      
@@ -142,3 +149,9 @@ or
 
 [code-climate-url]: https://codeclimate.com/github/scaljeri/javascript-dependency-injection/badges/gpa.svg
 [code-climate-image]: https://codeclimate.com/github/scaljeri/javascript-dependency-injection
+
+
+### TODO
+
+  1. Destroy a contract
+  2. Test Factory replacement

@@ -94,7 +94,19 @@ export default class DI {
      App.di.registerType("util", App.Util, ["compress", true, ["wsql", "ls"] ], { singleton: true } ) ;
      **/
     register(contractStr, classRef, params = [], options = {}) {
-        if (!Array.isArray(params)) // fix input
+        if (Array.isArray(classRef))
+        {
+            options = params;
+            params = classRef;
+            classRef = null;
+        }
+        else if (typeof classRef === 'object')
+        {
+            options = classRef;
+            classRef = null;
+        }
+
+        if (!Array.isArray(params)) // no params defined
         {
             options = params;
             params = [];
@@ -107,10 +119,18 @@ export default class DI {
             {
                 console.warn(`#register(${contractStr}): 'classRef' is not defined`);
             }
-        } else if (typeof(classRef) !== 'function') {
+        }
+        else if (typeof(classRef) !== 'function')
+        {
             console.warn(`#register(${contractStr}): 'classRef' is not a function`);
         }
         // --debug-end--
+
+
+        if (classRef && options.autoDetect !== false)
+        {
+            params = params.length === 0 ? this.extractContracts(classRef) : params;
+        }
 
         this.contracts[contractStr] = {
             classRef: classRef,
@@ -118,8 +138,8 @@ export default class DI {
             options: options
         };
 
-        // Prepare factory
-        if (!options.factoryFor) 
+        // Prepare factory if not manually defined
+        if (!options.factoryFor && !this.contracts[`${contractStr}Factory`])
         {
             this.contracts[`${contractStr}Factory`] = {
                 options: {
@@ -230,7 +250,8 @@ export default class DI {
             , self = this
             , contract = this.contracts[contractStr];
 
-        function Dependency() {
+        function Dependency()
+        {
             cr.apply(this, self.createInstanceList(contractStr, params));
         }
 
@@ -317,6 +338,12 @@ export default class DI {
         }
 
         return constParam;
+    }
+
+    extractContracts(classRef) {
+        let args = classRef.toString().match(/(?:(?:^function|constructor)[^\(]*\()([^\)]+)/);
+
+        return args === null ? [] : args.slice(-1)[0].replace(/\s/g, '').split(',');
     }
 }
 

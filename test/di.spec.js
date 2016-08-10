@@ -24,11 +24,13 @@ describe("DI", () => {
             di.register('$machineFactory', fixtures.MachineFactory, ['Tesla', '$engineFactory', fixtures.inventory], {singleton: true})
                     .register('$engine', fixtures.Engine, ['Model S', 'pk', 'mph', ['p1', 'p2', '$enginePartFactory']], { writable: true})
                     .register('$engineModelS', fixtures.Engine, ['Model S', 'pk', 'mph'])
+                    .register('$engineModelX', fixtures.Engine, ['Model X', 'pk', 'mph'])
                     .register('$enginePart', fixtures.EnginePart)
-                    .register('$enginePartFactoryModelS', null, ['oil'], {factoryFor: '$enginePart'})
-                    .register('$enginePartFactoryModelX', null, ['oil'], {factoryFor: '$enginePart', writable: true})
-                    .register('$user', fixtures.User, [,,'welcome', 'employee', '711'], {writable: true});
-
+                    .register('$enginePartFactoryModelS', ['oil'], {factoryFor: '$enginePart'})
+                    .register('$enginePartFactoryModelX', ['oil'], {factoryFor: '$enginePart', writable: true})
+                    .register('$user', fixtures.User, [,,'welcome', 'employee', '711'], {writable: true})
+                    .register('$tireS', fixtures.TireS)
+                    .register('$tireSX', fixtures.TireSX, {writable: true});
         });
 
         it('should be possible to replace an existing contract', () => {
@@ -44,7 +46,7 @@ describe("DI", () => {
         });
 
         describe('#getInstance', () => {
-            let factory, engineModelX, engineModelS, employee, boss, inventory, noOpts;
+            let factory, engineModelX, engineModelS, employee, boss, inventory;
 
             beforeEach(() => {
                 factory = di.getInstance('$machineFactory', 'Elon Musk', 8000);
@@ -127,7 +129,7 @@ describe("DI", () => {
                     newUser.args[3].should.equals('admin') ;
                 });
 
-                it('should ingore params if not writable', () => {
+                it('should ignore params if not writable', () => {
                     newModelS.args[0].should.equals('oil');
                 });
             });
@@ -147,6 +149,25 @@ describe("DI", () => {
                 it('should create new Singleton', () => {
                    factory.should.not.equals(newFactoryWithParams);
                 });
+            });
+
+            describe('Auto detect arguments', () => {
+                let tireS, tireSX;
+
+                beforeEach(() => {
+                    tireS = di.getInstance('$tireS', 8);
+                    tireSX = di.getInstance('$tireSX', undefined, 9, undefined, '$enginePart');
+                });
+
+                it('should have injected the arguments', () => {
+                    tireS.args[0].should.be.instanceOf(fixtures.Engine);
+                    tireS.args[1].should.equals(8);
+
+                    tireSX.args[0].should.be.instanceOf(fixtures.Engine);
+                    tireSX.args[1].should.equals(9);
+                    tireSX.args[2].should.be.instanceOf(fixtures.Engine);
+                    tireSX.args[3].should.be.instanceOf(fixtures.EnginePart);
+                })
             });
         });
     });
