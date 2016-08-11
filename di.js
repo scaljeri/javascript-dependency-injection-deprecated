@@ -202,10 +202,22 @@ export default class DI {
      * @param params
      */
     mergeParams(contract, newParams = [], initialParams = []) {
-        let mergedParams = [], params;
+        let mergedParams = [], params = [];
 
         if (contract.paramsOrigin === 'auto') {
-            params = contract.params.map((param) => this.contracts[param] ? param : undefined);
+            let param, keepUndef = false;
+
+            for(let i = contract.params.length - 1; i >= 0; i--) {
+                param = contract.params[i];
+
+                if (this.contracts[param]) {
+                    params.unshift(param);
+                    keepUndef = true;
+                } else if(keepUndef) {
+                    params.unshift(undefined);
+
+                }
+            }
         } else {
             params = contract.params;
         }
