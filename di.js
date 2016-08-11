@@ -102,7 +102,7 @@ export default class DI {
             params = classRef;
             classRef = null;
         }
-        else if (typeof classRef === 'object')
+        else if (classRef && typeof classRef === 'object')
         {
             options = classRef;
             classRef = null;

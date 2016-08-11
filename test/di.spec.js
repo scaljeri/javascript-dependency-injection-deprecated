@@ -26,7 +26,7 @@ describe("DI", () => {
                     .register('$engineModelS', fixtures.Engine, ['Model S', 'pk', 'mph'])
                     .register('$engineModelX', fixtures.Engine, ['Model X', 'pk', 'mph'])
                     .register('$enginePart', fixtures.EnginePart)
-                    .register('$enginePartFactoryModelS', ['oil'], {factoryFor: '$enginePart'})
+                    .register('$enginePartFactoryModelS', null, ['oil'], {factoryFor: '$enginePart'})
                     .register('$enginePartFactoryModelX', ['oil'], {factoryFor: '$enginePart', writable: true})
                     .register('$user', fixtures.User, [,,'welcome', 'employee', '711'], {writable: true})
                     .register('$tireS', fixtures.TireS)
