@@ -17,7 +17,7 @@
         di.register('$foo', Foo, [10], {singleton: true});
         di.register('$bar', Bar, {writable: true});
 
-        var bar = di.getInstance('$bar');
+        var bar = di.getInstance('$bar', undefined, 99);
         var foo = di.getInstance('$foo');
     </script>
 <head>
@@ -42,7 +42,7 @@
             di.register('$foo', Foo, [10], {singleton: true});
             di.register('$bar', Bar, {writable: true});
 
-            var bar = di.getInstance('$bar');
+            var bar = di.getInstance('$bar', undefined, 99);
             var foo = di.getInstance('$foo');
         </pre>
     </p>

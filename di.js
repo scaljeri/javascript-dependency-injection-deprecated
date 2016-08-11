@@ -236,18 +236,26 @@ var DI = function () {
     }, {
         key: 'mergeParams',
         value: function mergeParams(contract) {
-            var _this2 = this;
-
             var newParams = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
             var initialParams = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
 
             var mergedParams = [],
-                params = void 0;
+                params = [];
 
             if (contract.paramsOrigin === 'auto') {
-                params = contract.params.map(function (param) {
-                    return _this2.contracts[param] ? param : undefined;
-                });
+                var param = void 0,
+                    keepUndef = false;
+
+                for (var i = contract.params.length - 1; i >= 0; i--) {
+                    param = contract.params[i];
+
+                    if (this.contracts[param]) {
+                        params.unshift(param);
+                        keepUndef = true;
+                    } else if (keepUndef) {
+                        params.unshift(undefined);
+                    }
+                }
             } else {
                 params = contract.params;
             }
@@ -255,8 +263,8 @@ var DI = function () {
             initialParams = initialParams.length === 0 ? params : initialParams;
 
             if (contract.options.writable) {
-                for (var i = 0; i < Math.max(newParams.length, initialParams.length); i++) {
-                    mergedParams.push(newParams[i] === undefined ? initialParams[i] : newParams[i]);
+                for (var _i = 0; _i < Math.max(newParams.length, initialParams.length); _i++) {
+                    mergedParams.push(newParams[_i] === undefined ? initialParams[_i] : newParams[_i]);
                 }
             } else {
                 mergedParams = [].concat(_toConsumableArray(initialParams), _toConsumableArray(newParams));
@@ -312,7 +320,7 @@ var DI = function () {
     }, {
         key: 'createInstanceList',
         value: function createInstanceList(contractStr, params) {
-            var _this3 = this;
+            var _this2 = this;
 
             var constParams = [],
                 contract = this.contracts[contractStr],
@@ -321,11 +329,11 @@ var DI = function () {
             mergedParams.forEach(function (item) {
                 if (Array.isArray(item)) {
                     constParams.push(item.reduce(function (list, c) {
-                        list.push(_this3.contracts[c] ? _this3.getInstance(c) : c);
+                        list.push(_this2.contracts[c] ? _this2.getInstance(c) : c);
                         return list;
                     }, []));
                 } else {
-                    constParams.push(_this3.createInstanceIfContract(item));
+                    constParams.push(_this2.createInstanceIfContract(item));
                 }
             });
 
