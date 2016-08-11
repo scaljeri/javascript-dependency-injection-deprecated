@@ -72,7 +72,6 @@ var DI = function () {
      * @class DI
      * @constructor
      **/
-
     function DI() {
         _classCallCheck(this, DI);
 
@@ -119,11 +118,13 @@ var DI = function () {
             var params = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
             var options = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
+            var paramsOrigin = 'input';
+
             if (Array.isArray(classRef)) {
                 options = params;
                 params = classRef;
                 classRef = null;
-            } else if ((typeof classRef === 'undefined' ? 'undefined' : _typeof(classRef)) === 'object') {
+            } else if (classRef && (typeof classRef === 'undefined' ? 'undefined' : _typeof(classRef)) === 'object') {
                 options = classRef;
                 classRef = null;
             }
@@ -144,13 +145,16 @@ var DI = function () {
             }
             // --debug-end--
 
-            if (classRef && options.autoDetect !== false) {
+
+            if (params.length === 0 && classRef && options.autoDetect !== false) {
                 params = params.length === 0 ? this.extractContracts(classRef) : params;
+                paramsOrigin = 'auto';
             }
 
             this.contracts[contractStr] = {
                 classRef: classRef,
                 params: params,
+                paramsOrigin: paramsOrigin,
                 options: options
             };
 
@@ -242,12 +246,23 @@ var DI = function () {
     }, {
         key: 'mergeParams',
         value: function mergeParams(contract) {
+            var _this2 = this;
+
             var newParams = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
             var initialParams = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
 
-            var mergedParams = [];
+            var mergedParams = [],
+                params = void 0;
 
-            initialParams = initialParams.length === 0 ? contract.params : initialParams;
+            if (contract.paramsOrigin === 'auto') {
+                params = contract.params.map(function (param) {
+                    return _this2.contracts[param] ? param : undefined;
+                });
+            } else {
+                params = contract.params;
+            }
+
+            initialParams = initialParams.length === 0 ? params : initialParams;
 
             if (contract.options.writable) {
                 for (var i = 0; i < Math.max(newParams.length, initialParams.length); i++) {
@@ -307,7 +322,7 @@ var DI = function () {
     }, {
         key: 'createInstanceList',
         value: function createInstanceList(contractStr, params) {
-            var _this2 = this;
+            var _this3 = this;
 
             var constParams = [],
                 contract = this.contracts[contractStr],
@@ -316,12 +331,12 @@ var DI = function () {
             mergedParams.forEach(function (item) {
                 if (Array.isArray(item)) {
                     constParams.push(item.reduce(function (list, val) {
-                        list.push(_this2.getInstance(val));
+                        list.push(_this3.getInstance(val));
 
                         return list;
                     }, []));
                 } else {
-                    constParams.push(_this2.createInstanceIfContract(item));
+                    constParams.push(_this3.createInstanceIfContract(item));
                 }
             });
 
@@ -367,11 +382,11 @@ var DI = function () {
                             constParam = this.getInstance(contractStr); // create the instance
                             this.depCheck.pop(); // done, remove dependency from the list
                         } else {
-                            // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!
-                            problemContract = this.depCheck[0];
-                            this.depCheck.length = 0; // cleanup
-                            throw Error("Circular dependency detected for contract " + problemContract);
-                        }
+                        // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!
+                        problemContract = this.depCheck[0];
+                        this.depCheck.length = 0; // cleanup
+                        throw Error("Circular dependency detected for contract " + problemContract);
+                    }
                 }
 
             return constParam;
