@@ -132,6 +132,15 @@ describe("DI", () => {
                 it('should ignore params if not writable', () => {
                     newModelS.args[0].should.equals('oil');
                 });
+
+                it('should be possible to replace a factory', () => {
+                    di.register('$enginePartFactoryModelX', ['water'], {factoryFor: '$enginePart'})
+
+                    let tire = di.getInstance('$enginePartFactoryModelX')('100ml', '200ml');
+                    tire.args[0].should.equals('water');
+                    tire.args[1].should.equals('100ml');
+                    tire.args[2].should.equals('200ml');
+                });
             });
 
             describe('Recreate a singleton', () => {
@@ -168,6 +177,22 @@ describe("DI", () => {
                     tireSX.args[2].should.be.instanceOf(fixtures.Engine);
                     tireSX.args[3].should.be.instanceOf(fixtures.EnginePart);
                 })
+            });
+        });
+
+        describe('#remove', () => {
+            it('should remove a contract', () => {
+               di.remove('$engine');
+
+                should.not.exist(di.contracts['$engine']);
+            });
+        });
+
+        describe('#reset', () => {
+            it('should remove all contracts', () => {
+                di.reset();
+
+                Object.keys(di.contracts).length.should.equals(0);
             });
         });
     });

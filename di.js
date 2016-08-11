@@ -3,79 +3,36 @@ export default class DI {
      * DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,
      * facilitating lazy initialization and loose coupling between classes.
      *
-     * As an example, consider a User and Persitance classes:
+     * The classes:
      *
-     *     class WebSql {
-         *         constructor(name, fieldList)  { ... }
-         *         persist(obj) { ... }
-         *    }
+     *      class Bar {
+     *          constructor($foo, val) { this.foo = $foo; this.val = val }
+     *      }
      *
-     *     class IndexDB {
-         *         constructor(name, fieldList)  { ... }
-         *         persist(obj) { ... }
-         *     }
+     *      class Foo {}
      *
-     *     class User {
-         *         constructor(email, passwd, storage, role) { ... }
-         *         save() { this.storage.persist(this); }
-         *     }
+     * Setup:
      *
-     * With these classes in our pocket its time to setup the relations between them. The function that does this has the
-     * following signature
+     *     di.register('$bar', Bar);               // $bar         - is the name of the contract (can be anything),
+     *                                             // Bar          - the class reference
+     *     di.register('$foo', Foo);               // The order of registration is irrelevant (lazy initialization!)
      *
-     *     function (<contract name>,
-     *               <class reference>,
-     *               [optional list of constructor arguments],
-     *               {optional configuration object} )
+     * Usage:
      *
-     * Or just in code:
-     *
-     *     var di = new DI();
-     *
-     *     di.register('$user', User, [null, 'welcome', '$websql', 'nobody']);
-     *     di.register('$websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});
-     *     di.register('$indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: true});
-     *
-     * Note that the constructor arguments are default values or contract names. Now it is easy to create
-     * instances:
-     *
-     *     var user1 = di.getInstance('user', 'john@exampe.com'),
-     *           -> email: 'john@exampe.com', passwd: 'welcome', storage : WebSQL instance, role: 'nobody'
-     *         user2 = di.getInstance('user', 'john@exampe.com', 'newSecret'); // define a new password
-     *           -> email: 'john@exampe.com', passwd: 'newSecret', storage : WebSQL instance, role: 'nobody'
-     *
-     *     if (user1 instanceof User) { ... } // user1 is an instance of User!!
-     *
-     * But it is also possible to use `IndexDB` as the persistance class:
-     *
-     *     var user = di.getInstance('user', 'john@exampe.com', null, 'indexdb'), // The password is set to null too!
-     *           -> email: 'john@exampe.com', passwd: null, storage : IndexDB instance, role: 'nobody'
-     *         root = di.getInstance('user', 'john@exampe.com', undefined, 'indexdb', 'admin');
-     *           -> email: 'john@exampe.com', passwd: 'welcome', storage : IndexDB instance, role: 'admin'
-     *
+     *     let bar = di.getInstance('$bar', 10);   // bar instanceof Bar
+     *     // bar.foo instanceOf Foo -> true
+     *     // bar.val === 10
      *
      * @class DI
      * @constructor
      **/
     constructor() {
-        /** @private
-         *  Used to check for circular dependencies
-         * @type {Array}
-         */
-        this.depCheck = [];
-
-        /**
-         * @private
-         * Used to store all the registered contracts
-         * @type {{}}
-         */
-        this.contracts = {};
+        this.reset();
     }
 
     /**
-     * Register a class by creating a contract. Use {{#crossLink "DI/getInstance:method"}}{{/crossLink}} to obtain
-     * an instance from this contract. The <tt>params</tt> parameter is a list of contracts,  and, if needed, normal
-     * constructor parameters can be mixed in.
+     * Register a class by creating a contract. Use **getInstance** to obtain
+     * an instance from this contract. The **params** parameter is a list of contracts or simple values.
      *
      * @method register
      * @chainable
@@ -89,9 +46,9 @@ export default class DI {
      *      @param {String} [options.writable=false]  append (=false) or replace (=true) construtor arguments
      * @return {Object} this
      * @example
-     App.di.registerType("ajax", App.AJAX) ;
-     App.di.registerType("ajax", App.AJAX, [], { singleton: true }) ;
-     App.di.registerType("util", App.Util, ["compress", true, ["wsql", "ls"] ], { singleton: true } ) ;
+     App.di.registerType("$ajax", App.AJAX) ;
+     App.di.registerType("$ajax", App.AJAX, [], { singleton: true }) ;
+     App.di.registerType("$util", App.Util, ["compress", true, ["$wsql", "ls"] ], { singleton: true } ) ;
      **/
     register(contractStr, classRef, params = [], options = {}) {
         let paramsOrigin = 'input';
@@ -158,6 +115,33 @@ export default class DI {
     }
 
     /**
+     * Removes a contract
+     *
+     * @param {String} contractStr name of the contract
+     */
+    remove(contractStr) {
+        delete this.contracts[contractStr];
+    }
+
+    /**
+     * Removes all contracts
+     */
+    reset() {
+        /** @private
+         *  Used to check for circular dependencies
+         * @type {Array}
+         */
+        this.depCheck = [];
+
+        /**
+         * @private
+         * Used to store all the registered contracts
+         * @type {{}}
+         */
+        this.contracts = {};
+    }
+
+    /**
      * Returns an instance for the given contract. Use <tt>params</tt> attribute to overwrite the default
      * parameters for this contract. If <tt>params</tt> is defined, the singleton will be (re)created and its
      * parameters are updated.
@@ -194,7 +178,7 @@ export default class DI {
             }
         }
 
-        return instance || (this.depCheck.length === 0 ? null : contractStr);
+        return instance;
     }
 
     /**
@@ -291,9 +275,8 @@ export default class DI {
             if (Array.isArray(item))
             {
                 constParams.push(item.reduce(
-                        (list, val) => {
-                            list.push(this.getInstance(val));
-
+                        (list, c) => {
+                            list.push(this.contracts[c] ? this.getInstance(c) : c);
                             return list;
                         }, []));
             }
