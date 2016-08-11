@@ -94,6 +94,8 @@ export default class DI {
      App.di.registerType("util", App.Util, ["compress", true, ["wsql", "ls"] ], { singleton: true } ) ;
      **/
     register(contractStr, classRef, params = [], options = {}) {
+        let paramsOrigin = 'input';
+
         if (Array.isArray(classRef))
         {
             options = params;
@@ -127,14 +129,16 @@ export default class DI {
         // --debug-end--
 
 
-        if (classRef && options.autoDetect !== false)
+        if (params.length === 0 && classRef && options.autoDetect !== false)
         {
             params = params.length === 0 ? this.extractContracts(classRef) : params;
+            paramsOrigin = 'auto';
         }
 
         this.contracts[contractStr] = {
             classRef: classRef,
             params: params,
+            paramsOrigin: paramsOrigin,
             options: options
         };
 
@@ -171,7 +175,7 @@ export default class DI {
         let instance = null
             , contract = this.contracts[contractStr];
 
-        if (contract) 
+        if (contract)
         {
             if (contract.options.singleton)
             {
@@ -214,9 +218,15 @@ export default class DI {
      * @param params
      */
     mergeParams(contract, newParams = [], initialParams = []) {
-        let mergedParams = [];
+        let mergedParams = [], params;
 
-        initialParams = initialParams.length === 0 ? contract.params : initialParams;
+        if (contract.paramsOrigin === 'auto') {
+            params = contract.params.map((param) => this.contracts[param] ? param : undefined);
+        } else {
+            params = contract.params;
+        }
+
+        initialParams = initialParams.length === 0 ? params : initialParams;
 
         if (contract.options.writable)
         {

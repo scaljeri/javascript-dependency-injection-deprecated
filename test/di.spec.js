@@ -156,7 +156,7 @@ describe("DI", () => {
 
                 beforeEach(() => {
                     tireS = di.getInstance('$tireS', 8);
-                    tireSX = di.getInstance('$tireSX', undefined, 9, undefined, '$enginePart');
+                    tireSX = di.getInstance('$tireSX',undefined, undefined, undefined, '$enginePart');
                 });
 
                 it('should have injected the arguments', () => {
@@ -164,7 +164,7 @@ describe("DI", () => {
                     tireS.args[1].should.equals(8);
 
                     tireSX.args[0].should.be.instanceOf(fixtures.Engine);
-                    tireSX.args[1].should.equals(9);
+                    should.not.exist(tireSX.args[1]);
                     tireSX.args[2].should.be.instanceOf(fixtures.Engine);
                     tireSX.args[3].should.be.instanceOf(fixtures.EnginePart);
                 })
