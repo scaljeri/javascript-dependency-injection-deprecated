@@ -15,7 +15,7 @@ describe("DI", () => {
         di.should.be.defined;
     });
 
-    it('should habe no contracts', () => {
+    it('should have no contracts', () => {
         Object.keys(di.contracts).should.be.of.length(0);
     });
 
