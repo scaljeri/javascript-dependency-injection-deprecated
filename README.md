@@ -6,7 +6,9 @@
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/scaljeri/javascript-dependency-injection?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-## Javascript Dependency Injection (DI) library written in ES2015
+## Javascript Dependency Injection (DI) library written in ES2015 
+
+You can find a demo, documentation and a code coverage report [here](http://scaljeri.github.io/javascript-dependency-injection/)
 
  **DI** makes classes accessible by a contract. Instances are created when requested and 
  dependencies are injected into the constructor, facilitating lazy initialization and 
