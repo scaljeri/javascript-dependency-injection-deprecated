@@ -1,14 +1,14 @@
 {
-  "coverage": "50%",
-  "expectCount": 4,
-  "actualCount": 2,
+  "coverage": "60%",
+  "expectCount": 5,
+  "actualCount": 3,
   "files": {
     "javascript-dependency-injection/di.js": {
-      "expectCount": 4,
-      "actualCount": 2,
+      "expectCount": 5,
+      "actualCount": 3,
       "undocumentLines": [
         1,
-        2
+        343
       ]
     }
   }

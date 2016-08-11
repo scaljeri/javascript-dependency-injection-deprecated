@@ -5,6 +5,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -117,7 +119,16 @@ var DI = function () {
             var params = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
             var options = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
-            if (!Array.isArray(params)) // fix input
+            if (Array.isArray(classRef)) {
+                options = params;
+                params = classRef;
+                classRef = null;
+            } else if ((typeof classRef === 'undefined' ? 'undefined' : _typeof(classRef)) === 'object') {
+                options = classRef;
+                classRef = null;
+            }
+
+            if (!Array.isArray(params)) // no params defined
                 {
                     options = params;
                     params = [];
@@ -133,14 +144,18 @@ var DI = function () {
             }
             // --debug-end--
 
+            if (classRef && options.autoDetect !== false) {
+                params = params.length === 0 ? this.extractContracts(classRef) : params;
+            }
+
             this.contracts[contractStr] = {
                 classRef: classRef,
                 params: params,
                 options: options
             };
 
-            // Prepare factory
-            if (!options.factoryFor) {
+            // Prepare factory if not manually defined
+            if (!options.factoryFor && !this.contracts[contractStr + 'Factory']) {
                 this.contracts[contractStr + 'Factory'] = {
                     options: {
                         factoryFor: contractStr,
@@ -361,11 +376,17 @@ var DI = function () {
 
             return constParam;
         }
+    }, {
+        key: 'extractContracts',
+        value: function extractContracts(classRef) {
+            var args = classRef.toString().match(/(?:(?:^function|constructor)[^\(]*\()([^\)]+)/);
+
+            return args === null ? [] : args.slice(-1)[0].replace(/\s/g, '').split(',');
+        }
     }]);
 
     return DI;
 }();
-
 window.DI = DI;
 exports.default = DI;
 },{}]},{},[1]);

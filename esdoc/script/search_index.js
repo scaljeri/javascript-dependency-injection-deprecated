@@ -348,6 +348,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "javascript-dependency-injection/di.js~di#extractcontracts",
+    "class/javascript-dependency-injection/di.js~DI.html#instance-method-extractContracts",
+    "javascript-dependency-injection/di.js~DI#extractContracts",
+    "method"
+  ],
+  [
     "javascript-dependency-injection/di.js~di#getinstance",
     "class/javascript-dependency-injection/di.js~DI.html#instance-method-getInstance",
     "javascript-dependency-injection/di.js~DI#getInstance",
@@ -358,5 +364,11 @@ window.esdocSearchIndex = [
     "class/javascript-dependency-injection/di.js~DI.html#instance-method-register",
     "javascript-dependency-injection/di.js~DI#register",
     "method"
+  ],
+  [
+    "javascript-dependency-injection/dist/di.js",
+    "file/javascript-dependency-injection/dist/di.js.html",
+    "javascript-dependency-injection/dist/di.js",
+    "file"
   ]
 ]

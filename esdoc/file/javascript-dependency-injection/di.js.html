@@ -39,77 +39,77 @@
 
 <div class="content" data-ice="content"><h1 data-ice="title">javascript-dependency-injection/di.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">export default class DI {
-    constructor() {
-        /** @private
-         *
-         * @type {Array}
-         */
-        this.depCheck = []; // used to check for circular dependencies
-        /**
-         * DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,
-         * facilitating lazy initialization and loose coupling between classes.
-         *
-         * As an example, consider a User and Persitance classes:
-         *
-         *     class WebSql {
+    /**
+     * DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,
+     * facilitating lazy initialization and loose coupling between classes.
+     *
+     * As an example, consider a User and Persitance classes:
+     *
+     *     class WebSql {
          *         constructor(name, fieldList)  { ... }
          *         persist(obj) { ... }
          *    }
-         *
-         *     class IndexDB {
+     *
+     *     class IndexDB {
          *         constructor(name, fieldList)  { ... }
          *         persist(obj) { ... }
          *     }
-         *
-         *     class User {
+     *
+     *     class User {
          *         constructor(email, passwd, storage, role) { ... }
          *         save() { this.storage.persist(this); }
          *     }
-         *
-         * With these classes in our pocket its time to setup the relations between them. The function that does this has the
-         * following signature
-         *
-         *     function (&lt;contract name&gt;,
-         *               &lt;class reference&gt;,
-         *               [optional list of constructor arguments],
-         *               {optional configuration object} )
-         *
-         * Or just in code:
-         *
-         *     var di = new DI();
-         *
-         *     di.register(&apos;$user&apos;, User, [null, &apos;welcome&apos;, &apos;$websql&apos;, &apos;nobody&apos;]);
-         *     di.register(&apos;$websql&apos;, WebSql, [&apos;userTable&apos;, [&apos;email&apos;,&apos;passwd&apos;, &apos;role&apos;]], {singleton: true});
-         *     di.register(&apos;$indexdb&apos;, IndexDB, [&apos;userTable&apos;, [&apos;email&apos;,&apos;passwd&apos;, &apos;role&apos;]], {singleton: true});
-         *
-         * Note that the constructor arguments are default values or contract names. Now it is easy to create
-         * instances:
-         *
-         *     var user1 = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;),
-         *           -&gt; email: &apos;john@exampe.com&apos;, passwd: &apos;welcome&apos;, storage : WebSQL instance, role: &apos;nobody&apos;
-         *         user2 = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;, &apos;newSecret&apos;); // define a new password
-         *           -&gt; email: &apos;john@exampe.com&apos;, passwd: &apos;newSecret&apos;, storage : WebSQL instance, role: &apos;nobody&apos;
-         *
-         *     if (user1 instanceof User) { ... } // user1 is an instance of User!!
-         *
-         * But it is also possible to use `IndexDB` as the persistance class:
-         *
-         *     var user = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;, null, &apos;indexdb&apos;), // The password is set to null too!
-         *           -&gt; email: &apos;john@exampe.com&apos;, passwd: null, storage : IndexDB instance, role: &apos;nobody&apos;
-         *         root = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;, undefined, &apos;indexdb&apos;, &apos;admin&apos;);
-         *           -&gt; email: &apos;john@exampe.com&apos;, passwd: &apos;welcome&apos;, storage : IndexDB instance, role: &apos;admin&apos;
-         *
-         *
-         * @class DI
-         * @constructor
-         **/
-        // container for all registered classes
-        Object.defineProperty(this, &apos;_contracts&apos;,
-                {
-                    value: {},
-                    enumerable: false // hide it
-                }
-        );
+     *
+     * With these classes in our pocket its time to setup the relations between them. The function that does this has the
+     * following signature
+     *
+     *     function (&lt;contract name&gt;,
+     *               &lt;class reference&gt;,
+     *               [optional list of constructor arguments],
+     *               {optional configuration object} )
+     *
+     * Or just in code:
+     *
+     *     var di = new DI();
+     *
+     *     di.register(&apos;$user&apos;, User, [null, &apos;welcome&apos;, &apos;$websql&apos;, &apos;nobody&apos;]);
+     *     di.register(&apos;$websql&apos;, WebSql, [&apos;userTable&apos;, [&apos;email&apos;,&apos;passwd&apos;, &apos;role&apos;]], {singleton: true});
+     *     di.register(&apos;$indexdb&apos;, IndexDB, [&apos;userTable&apos;, [&apos;email&apos;,&apos;passwd&apos;, &apos;role&apos;]], {singleton: true});
+     *
+     * Note that the constructor arguments are default values or contract names. Now it is easy to create
+     * instances:
+     *
+     *     var user1 = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;),
+     *           -&gt; email: &apos;john@exampe.com&apos;, passwd: &apos;welcome&apos;, storage : WebSQL instance, role: &apos;nobody&apos;
+     *         user2 = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;, &apos;newSecret&apos;); // define a new password
+     *           -&gt; email: &apos;john@exampe.com&apos;, passwd: &apos;newSecret&apos;, storage : WebSQL instance, role: &apos;nobody&apos;
+     *
+     *     if (user1 instanceof User) { ... } // user1 is an instance of User!!
+     *
+     * But it is also possible to use `IndexDB` as the persistance class:
+     *
+     *     var user = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;, null, &apos;indexdb&apos;), // The password is set to null too!
+     *           -&gt; email: &apos;john@exampe.com&apos;, passwd: null, storage : IndexDB instance, role: &apos;nobody&apos;
+     *         root = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;, undefined, &apos;indexdb&apos;, &apos;admin&apos;);
+     *           -&gt; email: &apos;john@exampe.com&apos;, passwd: &apos;welcome&apos;, storage : IndexDB instance, role: &apos;admin&apos;
+     *
+     *
+     * @class DI
+     * @constructor
+     **/
+    constructor() {
+        /** @private
+         *  Used to check for circular dependencies
+         * @type {Array}
+         */
+        this.depCheck = [];
+
+        /**
+         * @private
+         * Used to store all the registered contracts
+         * @type {{}}
+         */
+        this.contracts = {};
     }
 
     /**
@@ -124,27 +124,71 @@
      * @param {Array} [params] list of constructor parameters. Only if a parameter is a string and matches a contract, it
      * will be replaced with the corresponding instance
      * @param {Object} [options] configuration
-     *      @param {String} [options.noClassRef=false] the reference is not a constructor but something else
      *      @param {String} [options.singleton=false] create a new instance every time
-     *      @param {String} [options.description] describes the contract (currently only used by {{#crossLink &quot;DI/listContracts:method&quot;}}{{/crossLink}}).
+     *      @param {String} [options.factoryFor] name of the contract for which it is a factory
+     *      @param {String} [options.writable=false]  append (=false) or replace (=true) construtor arguments
      * @return {Object} this
      * @example
      App.di.registerType(&quot;ajax&quot;, App.AJAX) ;
      App.di.registerType(&quot;ajax&quot;, App.AJAX, [], { singleton: true }) ;
      App.di.registerType(&quot;util&quot;, App.Util, [&quot;compress&quot;, true, [&quot;wsql&quot;, &quot;ls&quot;] ], { singleton: true } ) ;
      **/
-    register(contract, classRef, params, options) {
-        if (params &amp;&amp; !Array.isArray(params)) // fix input
+    register(contractStr, classRef, params = [], options = {}) {
+        if (Array.isArray(classRef))
+        {
+            options = params;
+            params = classRef;
+            classRef = null;
+        }
+        else if (typeof classRef === &apos;object&apos;)
+        {
+            options = classRef;
+            classRef = null;
+        }
+
+        if (!Array.isArray(params)) // no params defined
         {
             options = params;
             params = [];
         }
 
-        this._contracts[contract] = {
+        // --debug-start--
+        if (!classRef) 
+        {
+            if (!options.factoryFor) 
+            {
+                console.warn(`#register(${contractStr}): &apos;classRef&apos; is not defined`);
+            }
+        }
+        else if (typeof(classRef) !== &apos;function&apos;)
+        {
+            console.warn(`#register(${contractStr}): &apos;classRef&apos; is not a function`);
+        }
+        // --debug-end--
+
+
+        if (classRef &amp;&amp; options.autoDetect !== false)
+        {
+            params = params.length === 0 ? this.extractContracts(classRef) : params;
+        }
+
+        this.contracts[contractStr] = {
             classRef: classRef,
-            params: params || [],
-            options: options || {}
+            params: params,
+            options: options
         };
+
+        // Prepare factory if not manually defined
+        if (!options.factoryFor &amp;&amp; !this.contracts[`${contractStr}Factory`])
+        {
+            this.contracts[`${contractStr}Factory`] = {
+                options: {
+                    factoryFor: contractStr
+                    , writable: options.writable
+                },
+                params: []
+            };
+        }
 
         return this;
     }
@@ -163,26 +207,69 @@
      var ajax = App.di.getInstance(&quot;ajax&quot;) ;
      ajax = App.di.getInstance(&quot;ajax&quot;, &quot;rest&quot;, true) ;
      **/
-    getInstance(contract, ...params) {
-        let instance = null;
+    getInstance(contractStr, ...params) {
+        let instance = null
+            , contract = this.contracts[contractStr];
 
-        if (this._contracts[contract])                           // it should exist
+        if (contract) 
         {
-            if (this._contracts[contract].options.singleton) {
-                instance = this.getSingletonInstance(contract, params);
-            } else //create a new instance every time
+            if (contract.options.singleton)
             {
-                if (this._contracts[contract].options.notAClass)
+                instance = this.getSingletonInstance(contractStr, params);
+            }
+            else //create a new instance every time
+            {
+                if (contract.options.factoryFor)
                 {
-                    instance = this._contracts[contract].classRef;
-                } else
+                    instance = this.createFactory(contractStr, params);
+                }
+                else
                 {
-                    instance = this.createInstance(contract, params);
+                    instance = this.createInstance(contractStr, params);
                 }
             }
         }
 
-        return instance;
+        return instance || (this.depCheck.length === 0 ? null : contractStr);
+    }
+
+    /**
+     * @private
+     * @param contractStr
+     * @param initialParams
+     * @returns {function()}
+     */
+    createFactory(contractStr, initialParams) {
+        let contract = this.contracts[contractStr]
+            , baseParams = this.mergeParams(contract, initialParams);
+
+        return (...params) =&gt; {
+            return this.getInstance(contract.options.factoryFor, ...this.mergeParams(contract, params, baseParams));
+        };
+    }
+
+    /**
+     * @private
+     * @param contract
+     * @param params
+     */
+    mergeParams(contract, newParams = [], initialParams = []) {
+        let mergedParams = [];
+
+        initialParams = initialParams.length === 0 ? contract.params : initialParams;
+
+        if (contract.options.writable)
+        {
+            for (let i = 0; i &lt; Math.max(newParams.length, initialParams.length); i++) {
+                mergedParams.push(newParams[i] === undefined ? initialParams[i] : newParams[i]);
+            }
+        }
+        else
+        {
+            mergedParams = [...initialParams, ...newParams];
+        }
+
+        return mergedParams;
     }
 
     /**
@@ -198,23 +285,22 @@
      * @example
      var storage = App.di.createInstance(&quot;data&quot;, [&quot;compress&quot;, true, &quot;websql&quot;]) ;
      **/
-    createInstance(contract, params) {
-        let cr, instance = null
-                , self = this;
+    createInstance(contractStr, params) {
+        let cr, instance
+            , self = this
+            , contract = this.contracts[contractStr];
 
-        function Dependency() {
-            cr.apply(this, self.createInstanceList(contract, params || []));
-        }
-
-        if (this._contracts[contract])             // contract should exist
+        function Dependency()
         {
-            cr = this._contracts[contract].classRef;
-
-            this.depCheck.push(contract);
-            Dependency.prototype = cr.prototype;   // Fix instanceof
-            instance = new Dependency();           // done
-            this.depCheck.pop();
+            cr.apply(this, self.createInstanceList(contractStr, params));
         }
+
+        cr = contract.classRef;
+
+        this.depCheck.push(contractStr);
+        Dependency.prototype = cr.prototype;   // Fix instanceof
+        instance = new Dependency();           // done
+        this.depCheck.pop();
 
         return instance;
     }
@@ -226,44 +312,45 @@
      * In this case, the constructor would, for example, look like this:
      *    function constructor(instance, array, instance) { .. }
      * */
-    createInstanceList(contract, params) {
-        let i, item
-                , constParams = []
-                , noa = Math.max(params.length, this._contracts[contract].params.length);
+    createInstanceList(contractStr, params) {
+        let constParams = []
+            , contract = this.contracts[contractStr]
+            , mergedParams = this.mergeParams(contract, params);
 
-        for (i = 0; i &lt; noa; i++) {
-            item = (params[i] === undefined || params[i] === null) ? this._contracts[contract].params[i] : params[i];
+        mergedParams.forEach((item) =&gt; {
+            if (Array.isArray(item))
+            {
+                constParams.push(item.reduce(
+                        (list, val) =&gt; {
+                            list.push(this.getInstance(val));
 
-            if (Array.isArray(item)) {
-                constParams.push(this.createInstanceList(contract, item));
+                            return list;
+                        }, []));
             }
-            else {
+            else
+            {
                 constParams.push(this.createInstanceIfContract(item));
             }
-        }
+        });
 
         return constParams;
     }
 
     /** @private
+     *
      * Create or reuse a singleton instance
      */
-    getSingletonInstance(contract, params) {
-        let config = this._contracts[contract];
+    getSingletonInstance(contractStr, params) {
+        let contract = this.contracts[contractStr]
+            , mergedParams = this.mergeParams(contract, params);
 
-        if (params &amp;&amp; params.length &gt; 0) {
-            params.forEach((arg, index) =&gt; {
-                if (arg !== null) {
-                    config.params[index] = arg;
-                }
-            });
+        if (contract.instance === undefined || (params &amp;&amp; params.length &gt; 0))
+        {
+            contract.params = mergedParams;
+            contract.instance = this.createInstance(contractStr);
         }
 
-        if (config.instance === undefined || (params &amp;&amp; params.length &gt; 0)) {
-            config.instance = this.createInstance(contract, config.params);
-        }
-
-        return config.instance;
+        return contract.instance;
     }
 
     /** @private
@@ -271,25 +358,32 @@
      * @param contract
      * @returns {*}
      */
-    createInstanceIfContract(contract) {                                    // is a contract
-        let problemContract, constParam = contract;
+    createInstanceIfContract(contractStr) {                                     // is a contract
+        let problemContract
+            , constParam = contractStr;
 
-        if (typeof(contract) === &apos;string&apos; &amp;&amp; this._contracts[contract])     // is &apos;contract&apos; just a contructor parameter or a contract?
+        if (typeof(contractStr) === &apos;string&apos; &amp;&amp; this.contracts[contractStr])  // is &apos;contract&apos; just a contructor parameter or a contract?
         {
-            if (this.depCheck.indexOf(contract) === -1)                     // check for circular dependency
+            if (this.depCheck.indexOf(contractStr) === -1)                        // check for circular dependency
             {
-                constParam = this.getInstance(contract);                    // create the instance
-                this.depCheck.pop();                                        // done, remove dependency from the list
+                constParam = this.getInstance(contractStr);                    // create the instance
+                this.depCheck.pop();                                           // done, remove dependency from the list
             }
-            else   // circular dependency detected!! --&gt; STOP, someone did something stupid -&gt; fix needed!!
-            {
+            else
+            { // circular dependency detected!! --&gt; STOP, someone did something stupid -&gt; fix needed!!
                 problemContract = this.depCheck[0];
-                this.depCheck.length = 0;                                   // cleanup
+                this.depCheck.length = 0;                                      // cleanup
                 throw Error(&quot;Circular dependency detected for contract &quot; + problemContract);
             }
         }
 
         return constParam;
+    }
+
+    extractContracts(classRef) {
+        let args = classRef.toString().match(/(?:(?:^function|constructor)[^\(]*\()([^\)]+)/);
+
+        return args === null ? [] : args.slice(-1)[0].replace(/\s/g, &apos;&apos;).split(&apos;,&apos;);
     }
 }
 

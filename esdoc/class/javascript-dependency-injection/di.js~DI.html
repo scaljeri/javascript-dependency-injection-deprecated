@@ -98,7 +98,8 @@
       <div>
         
         
-        
+        <div data-ice="description"><p>DI makes classes accessible by a contract.</p>
+</div>
       </div>
     </td>
     <td>
@@ -115,6 +116,31 @@
   <tbody>
   
   <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+           <span data-ice="name"><span><a href="class/javascript-dependency-injection/di.js~DI.html#instance-method-extractContracts">extractContracts</a></span></span><span data-ice="signature">(classRef: <span>*</span>): <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
     <td>
       <span class="access" data-ice="access">public</span>
       
@@ -187,14 +213,55 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/javascript-dependency-injection/di.js.html#lineNumber2">source</a></span></span>
+      <span data-ice="source"><span><a href="file/javascript-dependency-injection/di.js.html#lineNumber60">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  
+  <div data-ice="description"><p>DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,
+facilitating lazy initialization and loose coupling between classes.</p>
+<p>As an example, consider a User and Persitance classes:</p>
+<pre><code><code class="source-code prettyprint">class WebSql {
+    constructor(name, fieldList)  { ... }
+    persist(obj) { ... }</code>
+</code></pre><p>   }</p>
+<pre><code><code class="source-code prettyprint">class IndexDB {
+    constructor(name, fieldList)  { ... }
+    persist(obj) { ... }
+}
+
+class User {
+    constructor(email, passwd, storage, role) { ... }
+    save() { this.storage.persist(this); }
+}</code>
+</code></pre><p>With these classes in our pocket its time to setup the relations between them. The function that does this has the
+following signature</p>
+<pre><code><code class="source-code prettyprint">function (&lt;contract name&gt;,
+          &lt;class reference&gt;,
+          [optional list of constructor arguments],
+          {optional configuration object} )</code>
+</code></pre><p>Or just in code:</p>
+<pre><code><code class="source-code prettyprint">var di = new DI();
+
+di.register(&apos;$user&apos;, User, [null, &apos;welcome&apos;, &apos;$websql&apos;, &apos;nobody&apos;]);
+di.register(&apos;$websql&apos;, WebSql, [&apos;userTable&apos;, [&apos;email&apos;,&apos;passwd&apos;, &apos;role&apos;]], {singleton: true});
+di.register(&apos;$indexdb&apos;, IndexDB, [&apos;userTable&apos;, [&apos;email&apos;,&apos;passwd&apos;, &apos;role&apos;]], {singleton: true});</code>
+</code></pre><p>Note that the constructor arguments are default values or contract names. Now it is easy to create
+instances:</p>
+<pre><code><code class="source-code prettyprint">var user1 = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;),
+      -&gt; email: &apos;john@exampe.com&apos;, passwd: &apos;welcome&apos;, storage : WebSQL instance, role: &apos;nobody&apos;
+    user2 = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;, &apos;newSecret&apos;); // define a new password
+      -&gt; email: &apos;john@exampe.com&apos;, passwd: &apos;newSecret&apos;, storage : WebSQL instance, role: &apos;nobody&apos;
+
+if (user1 instanceof User) { ... } // user1 is an instance of User!!</code>
+</code></pre><p>But it is also possible to use <code>IndexDB</code> as the persistance class:</p>
+<pre><code><code class="source-code prettyprint">var user = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;, null, &apos;indexdb&apos;), // The password is set to null too!
+      -&gt; email: &apos;john@exampe.com&apos;, passwd: null, storage : IndexDB instance, role: &apos;nobody&apos;
+    root = di.getInstance(&apos;user&apos;, &apos;john@exampe.com&apos;, undefined, &apos;indexdb&apos;, &apos;admin&apos;);
+      -&gt; email: &apos;john@exampe.com&apos;, passwd: &apos;welcome&apos;, storage : IndexDB instance, role: &apos;admin&apos;</code>
+</code></pre></div>
 
   
 
@@ -221,6 +288,72 @@
 <div data-ice="methodDetails"><h2 data-ice="title">Public Methods</h2>
 
 <div class="detail" data-ice="detail">
+  <h3 data-ice="anchor" id="instance-method-extractContracts">
+    <span class="access" data-ice="access">public</span>
+    
+    
+    
+    
+    <span data-ice="name">extractContracts</span><span data-ice="signature">(classRef: <span>*</span>): <span>*</span></span>
+    <span class="right-info">
+      
+      
+      <span data-ice="source"><span><a href="file/javascript-dependency-injection/di.js.html#lineNumber343">source</a></span></span>
+    </span>
+  </h3>
+
+  
+  
+  
+  
+
+  
+
+  <div data-ice="properties"><div data-ice="properties">
+  <h4 data-ice="title">Params:</h4>
+  <table class="params">
+    <thead>
+    <tr><td>Name</td><td>Type</td><td>Attribute</td><td>Description</td></tr>
+    </thead>
+    <tbody>
+    
+    <tr data-ice="property" data-depth="0">
+      <td data-ice="name" data-depth="0">classRef</td>
+      <td data-ice="type"><span>*</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"></td>
+    </tr>
+</tbody>
+  </table>
+</div>
+</div>
+
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tr>
+        <td class="return-type" data-ice="returnType"><span>*</span></td>
+        
+      </tr>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+</div>
+<div class="detail" data-ice="detail">
   <h3 data-ice="anchor" id="instance-method-getInstance">
     <span class="access" data-ice="access">public</span>
     
@@ -231,7 +364,7 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/javascript-dependency-injection/di.js.html#lineNumber126">source</a></span></span>
+      <span data-ice="source"><span><a href="file/javascript-dependency-injection/di.js.html#lineNumber170">source</a></span></span>
     </span>
   </h3>
 
@@ -370,14 +503,6 @@ will be replaced with the corresponding instance</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
-      <td data-ice="name" data-depth="1">options.noClassRef</td>
-      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
-      <td data-ice="appendix"><ul><li>optional</li>
-<li>default: false</li></ul></td>
-      <td data-ice="description"><p>the reference is not a constructor but something else</p>
-</td>
-    </tr>
-<tr data-ice="property" data-depth="1">
       <td data-ice="name" data-depth="1">options.singleton</td>
       <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"><ul><li>optional</li>
@@ -386,10 +511,18 @@ will be replaced with the corresponding instance</p>
 </td>
     </tr>
 <tr data-ice="property" data-depth="1">
-      <td data-ice="name" data-depth="1">options.description</td>
+      <td data-ice="name" data-depth="1">options.factoryFor</td>
       <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"><ul><li>optional</li></ul></td>
-      <td data-ice="description"><p>describes the contract (currently only used by {{#crossLink &quot;DI/listContracts:method&quot;}}{{/crossLink}}).</p>
+      <td data-ice="description"><p>name of the contract for which it is a factory</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="1">
+      <td data-ice="name" data-depth="1">options.writable</td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
+      <td data-ice="appendix"><ul><li>optional</li>
+<li>default: false</li></ul></td>
+      <td data-ice="description"><p>append (=false) or replace (=true) construtor arguments</p>
 </td>
     </tr>
 </tbody>

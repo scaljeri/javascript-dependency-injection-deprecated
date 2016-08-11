@@ -10,7 +10,7 @@
     "access": null,
     "description": null,
     "lineNumber": 1,
-    "content": "export default class DI {\n    constructor() {\n        /** @private\n         *\n         * @type {Array}\n         */\n        this.depCheck = []; // used to check for circular dependencies\n        /**\n         * DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,\n         * facilitating lazy initialization and loose coupling between classes.\n         *\n         * As an example, consider a User and Persitance classes:\n         *\n         *     class WebSql {\n         *         constructor(name, fieldList)  { ... }\n         *         persist(obj) { ... }\n         *    }\n         *\n         *     class IndexDB {\n         *         constructor(name, fieldList)  { ... }\n         *         persist(obj) { ... }\n         *     }\n         *\n         *     class User {\n         *         constructor(email, passwd, storage, role) { ... }\n         *         save() { this.storage.persist(this); }\n         *     }\n         *\n         * With these classes in our pocket its time to setup the relations between them. The function that does this has the\n         * following signature\n         *\n         *     function (<contract name>,\n         *               <class reference>,\n         *               [optional list of constructor arguments],\n         *               {optional configuration object} )\n         *\n         * Or just in code:\n         *\n         *     var di = new DI();\n         *\n         *     di.register('$user', User, [null, 'welcome', '$websql', 'nobody']);\n         *     di.register('$websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});\n         *     di.register('$indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: true});\n         *\n         * Note that the constructor arguments are default values or contract names. Now it is easy to create\n         * instances:\n         *\n         *     var user1 = di.getInstance('user', 'john@exampe.com'),\n         *           -> email: 'john@exampe.com', passwd: 'welcome', storage : WebSQL instance, role: 'nobody'\n         *         user2 = di.getInstance('user', 'john@exampe.com', 'newSecret'); // define a new password\n         *           -> email: 'john@exampe.com', passwd: 'newSecret', storage : WebSQL instance, role: 'nobody'\n         *\n         *     if (user1 instanceof User) { ... } // user1 is an instance of User!!\n         *\n         * But it is also possible to use `IndexDB` as the persistance class:\n         *\n         *     var user = di.getInstance('user', 'john@exampe.com', null, 'indexdb'), // The password is set to null too!\n         *           -> email: 'john@exampe.com', passwd: null, storage : IndexDB instance, role: 'nobody'\n         *         root = di.getInstance('user', 'john@exampe.com', undefined, 'indexdb', 'admin');\n         *           -> email: 'john@exampe.com', passwd: 'welcome', storage : IndexDB instance, role: 'admin'\n         *\n         *\n         * @class DI\n         * @constructor\n         **/\n        // container for all registered classes\n        Object.defineProperty(this, '_contracts',\n                {\n                    value: {},\n                    enumerable: false // hide it\n                }\n        );\n    }\n\n    /**\n     * Register a class by creating a contract. Use {{#crossLink \"DI/getInstance:method\"}}{{/crossLink}} to obtain\n     * an instance from this contract. The <tt>params</tt> parameter is a list of contracts,  and, if needed, normal\n     * constructor parameters can be mixed in.\n     *\n     * @method register\n     * @chainable\n     * @param {String} contract name of the contract\n     * @param {Class} classRef the class bind to this contract\n     * @param {Array} [params] list of constructor parameters. Only if a parameter is a string and matches a contract, it\n     * will be replaced with the corresponding instance\n     * @param {Object} [options] configuration\n     *      @param {String} [options.noClassRef=false] the reference is not a constructor but something else\n     *      @param {String} [options.singleton=false] create a new instance every time\n     *      @param {String} [options.description] describes the contract (currently only used by {{#crossLink \"DI/listContracts:method\"}}{{/crossLink}}).\n     * @return {Object} this\n     * @example\n     App.di.registerType(\"ajax\", App.AJAX) ;\n     App.di.registerType(\"ajax\", App.AJAX, [], { singleton: true }) ;\n     App.di.registerType(\"util\", App.Util, [\"compress\", true, [\"wsql\", \"ls\"] ], { singleton: true } ) ;\n     **/\n    register(contract, classRef, params, options) {\n        if (params && !Array.isArray(params)) // fix input\n        {\n            options = params;\n            params = [];\n        }\n\n        this._contracts[contract] = {\n            classRef: classRef,\n            params: params || [],\n            options: options || {}\n        };\n\n        return this;\n    }\n\n    /**\n     * Returns an instance for the given contract. Use <tt>params</tt> attribute to overwrite the default\n     * parameters for this contract. If <tt>params</tt> is defined, the singleton will be (re)created and its\n     * parameters are updated.\n     *\n     * @method getInstance\n     * @param  {String} contract name\n     * @param  {...*} [params] constructor parameters which, if defined, replaces its default arguments (see {{#crossLink \"DI/register:method\"}}{{/crossLink}} )\n     * @return {Object} Class instance\n     * @example\n     App.di.register(\"ajax\", [\"rest\"]) ;\n     var ajax = App.di.getInstance(\"ajax\") ;\n     ajax = App.di.getInstance(\"ajax\", \"rest\", true) ;\n     **/\n    getInstance(contract, ...params) {\n        let instance = null;\n\n        if (this._contracts[contract])                           // it should exist\n        {\n            if (this._contracts[contract].options.singleton) {\n                instance = this.getSingletonInstance(contract, params);\n            } else //create a new instance every time\n            {\n                if (this._contracts[contract].options.notAClass)\n                {\n                    instance = this._contracts[contract].classRef;\n                } else\n                {\n                    instance = this.createInstance(contract, params);\n                }\n            }\n        }\n\n        return instance;\n    }\n\n    /**\n     * @private\n     * Returns a new instance of the class matched by the contract.\n     *\n     * @method createInstance\n     * @param {string} contract - the contract name\n     * @param {Array} params - list of contracts passed to the constructor. Each parameter which is not a string or\n     * an unknown contract, is passed as-is to the constructor\n     *\n     * @returns {Object}\n     * @example\n     var storage = App.di.createInstance(\"data\", [\"compress\", true, \"websql\"]) ;\n     **/\n    createInstance(contract, params) {\n        let cr, instance = null\n                , self = this;\n\n        function Dependency() {\n            cr.apply(this, self.createInstanceList(contract, params || []));\n        }\n\n        if (this._contracts[contract])             // contract should exist\n        {\n            cr = this._contracts[contract].classRef;\n\n            this.depCheck.push(contract);\n            Dependency.prototype = cr.prototype;   // Fix instanceof\n            instance = new Dependency();           // done\n            this.depCheck.pop();\n        }\n\n        return instance;\n    }\n\n    /** @private\n     * Convert a list of contracts into a list of instances\n     * A dependency list can contain arrays with dependencies too:\n     *    [\"depA\", [\"depB\", \"depC\"], \"depE\"]\n     * In this case, the constructor would, for example, look like this:\n     *    function constructor(instance, array, instance) { .. }\n     * */\n    createInstanceList(contract, params) {\n        let i, item\n                , constParams = []\n                , noa = Math.max(params.length, this._contracts[contract].params.length);\n\n        for (i = 0; i < noa; i++) {\n            item = (params[i] === undefined || params[i] === null) ? this._contracts[contract].params[i] : params[i];\n\n            if (Array.isArray(item)) {\n                constParams.push(this.createInstanceList(contract, item));\n            }\n            else {\n                constParams.push(this.createInstanceIfContract(item));\n            }\n        }\n\n        return constParams;\n    }\n\n    /** @private\n     * Create or reuse a singleton instance\n     */\n    getSingletonInstance(contract, params) {\n        let config = this._contracts[contract];\n\n        if (params && params.length > 0) {\n            params.forEach((arg, index) => {\n                if (arg !== null) {\n                    config.params[index] = arg;\n                }\n            });\n        }\n\n        if (config.instance === undefined || (params && params.length > 0)) {\n            config.instance = this.createInstance(contract, config.params);\n        }\n\n        return config.instance;\n    }\n\n    /** @private\n     *\n     * @param contract\n     * @returns {*}\n     */\n    createInstanceIfContract(contract) {                                    // is a contract\n        let problemContract, constParam = contract;\n\n        if (typeof(contract) === 'string' && this._contracts[contract])     // is 'contract' just a contructor parameter or a contract?\n        {\n            if (this.depCheck.indexOf(contract) === -1)                     // check for circular dependency\n            {\n                constParam = this.getInstance(contract);                    // create the instance\n                this.depCheck.pop();                                        // done, remove dependency from the list\n            }\n            else   // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!\n            {\n                problemContract = this.depCheck[0];\n                this.depCheck.length = 0;                                   // cleanup\n                throw Error(\"Circular dependency detected for contract \" + problemContract);\n            }\n        }\n\n        return constParam;\n    }\n}\n\n\n"
+    "content": "export default class DI {\n    /**\n     * DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,\n     * facilitating lazy initialization and loose coupling between classes.\n     *\n     * As an example, consider a User and Persitance classes:\n     *\n     *     class WebSql {\n         *         constructor(name, fieldList)  { ... }\n         *         persist(obj) { ... }\n         *    }\n     *\n     *     class IndexDB {\n         *         constructor(name, fieldList)  { ... }\n         *         persist(obj) { ... }\n         *     }\n     *\n     *     class User {\n         *         constructor(email, passwd, storage, role) { ... }\n         *         save() { this.storage.persist(this); }\n         *     }\n     *\n     * With these classes in our pocket its time to setup the relations between them. The function that does this has the\n     * following signature\n     *\n     *     function (<contract name>,\n     *               <class reference>,\n     *               [optional list of constructor arguments],\n     *               {optional configuration object} )\n     *\n     * Or just in code:\n     *\n     *     var di = new DI();\n     *\n     *     di.register('$user', User, [null, 'welcome', '$websql', 'nobody']);\n     *     di.register('$websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});\n     *     di.register('$indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: true});\n     *\n     * Note that the constructor arguments are default values or contract names. Now it is easy to create\n     * instances:\n     *\n     *     var user1 = di.getInstance('user', 'john@exampe.com'),\n     *           -> email: 'john@exampe.com', passwd: 'welcome', storage : WebSQL instance, role: 'nobody'\n     *         user2 = di.getInstance('user', 'john@exampe.com', 'newSecret'); // define a new password\n     *           -> email: 'john@exampe.com', passwd: 'newSecret', storage : WebSQL instance, role: 'nobody'\n     *\n     *     if (user1 instanceof User) { ... } // user1 is an instance of User!!\n     *\n     * But it is also possible to use `IndexDB` as the persistance class:\n     *\n     *     var user = di.getInstance('user', 'john@exampe.com', null, 'indexdb'), // The password is set to null too!\n     *           -> email: 'john@exampe.com', passwd: null, storage : IndexDB instance, role: 'nobody'\n     *         root = di.getInstance('user', 'john@exampe.com', undefined, 'indexdb', 'admin');\n     *           -> email: 'john@exampe.com', passwd: 'welcome', storage : IndexDB instance, role: 'admin'\n     *\n     *\n     * @class DI\n     * @constructor\n     **/\n    constructor() {\n        /** @private\n         *  Used to check for circular dependencies\n         * @type {Array}\n         */\n        this.depCheck = [];\n\n        /**\n         * @private\n         * Used to store all the registered contracts\n         * @type {{}}\n         */\n        this.contracts = {};\n    }\n\n    /**\n     * Register a class by creating a contract. Use {{#crossLink \"DI/getInstance:method\"}}{{/crossLink}} to obtain\n     * an instance from this contract. The <tt>params</tt> parameter is a list of contracts,  and, if needed, normal\n     * constructor parameters can be mixed in.\n     *\n     * @method register\n     * @chainable\n     * @param {String} contract name of the contract\n     * @param {Class} classRef the class bind to this contract\n     * @param {Array} [params] list of constructor parameters. Only if a parameter is a string and matches a contract, it\n     * will be replaced with the corresponding instance\n     * @param {Object} [options] configuration\n     *      @param {String} [options.singleton=false] create a new instance every time\n     *      @param {String} [options.factoryFor] name of the contract for which it is a factory\n     *      @param {String} [options.writable=false]  append (=false) or replace (=true) construtor arguments\n     * @return {Object} this\n     * @example\n     App.di.registerType(\"ajax\", App.AJAX) ;\n     App.di.registerType(\"ajax\", App.AJAX, [], { singleton: true }) ;\n     App.di.registerType(\"util\", App.Util, [\"compress\", true, [\"wsql\", \"ls\"] ], { singleton: true } ) ;\n     **/\n    register(contractStr, classRef, params = [], options = {}) {\n        if (Array.isArray(classRef))\n        {\n            options = params;\n            params = classRef;\n            classRef = null;\n        }\n        else if (typeof classRef === 'object')\n        {\n            options = classRef;\n            classRef = null;\n        }\n\n        if (!Array.isArray(params)) // no params defined\n        {\n            options = params;\n            params = [];\n        }\n\n        // --debug-start--\n        if (!classRef) \n        {\n            if (!options.factoryFor) \n            {\n                console.warn(`#register(${contractStr}): 'classRef' is not defined`);\n            }\n        }\n        else if (typeof(classRef) !== 'function')\n        {\n            console.warn(`#register(${contractStr}): 'classRef' is not a function`);\n        }\n        // --debug-end--\n\n\n        if (classRef && options.autoDetect !== false)\n        {\n            params = params.length === 0 ? this.extractContracts(classRef) : params;\n        }\n\n        this.contracts[contractStr] = {\n            classRef: classRef,\n            params: params,\n            options: options\n        };\n\n        // Prepare factory if not manually defined\n        if (!options.factoryFor && !this.contracts[`${contractStr}Factory`])\n        {\n            this.contracts[`${contractStr}Factory`] = {\n                options: {\n                    factoryFor: contractStr\n                    , writable: options.writable\n                },\n                params: []\n            };\n        }\n\n        return this;\n    }\n\n    /**\n     * Returns an instance for the given contract. Use <tt>params</tt> attribute to overwrite the default\n     * parameters for this contract. If <tt>params</tt> is defined, the singleton will be (re)created and its\n     * parameters are updated.\n     *\n     * @method getInstance\n     * @param  {String} contract name\n     * @param  {...*} [params] constructor parameters which, if defined, replaces its default arguments (see {{#crossLink \"DI/register:method\"}}{{/crossLink}} )\n     * @return {Object} Class instance\n     * @example\n     App.di.register(\"ajax\", [\"rest\"]) ;\n     var ajax = App.di.getInstance(\"ajax\") ;\n     ajax = App.di.getInstance(\"ajax\", \"rest\", true) ;\n     **/\n    getInstance(contractStr, ...params) {\n        let instance = null\n            , contract = this.contracts[contractStr];\n\n        if (contract) \n        {\n            if (contract.options.singleton)\n            {\n                instance = this.getSingletonInstance(contractStr, params);\n            }\n            else //create a new instance every time\n            {\n                if (contract.options.factoryFor)\n                {\n                    instance = this.createFactory(contractStr, params);\n                }\n                else\n                {\n                    instance = this.createInstance(contractStr, params);\n                }\n            }\n        }\n\n        return instance || (this.depCheck.length === 0 ? null : contractStr);\n    }\n\n    /**\n     * @private\n     * @param contractStr\n     * @param initialParams\n     * @returns {function()}\n     */\n    createFactory(contractStr, initialParams) {\n        let contract = this.contracts[contractStr]\n            , baseParams = this.mergeParams(contract, initialParams);\n\n        return (...params) => {\n            return this.getInstance(contract.options.factoryFor, ...this.mergeParams(contract, params, baseParams));\n        };\n    }\n\n    /**\n     * @private\n     * @param contract\n     * @param params\n     */\n    mergeParams(contract, newParams = [], initialParams = []) {\n        let mergedParams = [];\n\n        initialParams = initialParams.length === 0 ? contract.params : initialParams;\n\n        if (contract.options.writable)\n        {\n            for (let i = 0; i < Math.max(newParams.length, initialParams.length); i++) {\n                mergedParams.push(newParams[i] === undefined ? initialParams[i] : newParams[i]);\n            }\n        }\n        else\n        {\n            mergedParams = [...initialParams, ...newParams];\n        }\n\n        return mergedParams;\n    }\n\n    /**\n     * @private\n     * Returns a new instance of the class matched by the contract.\n     *\n     * @method createInstance\n     * @param {string} contract - the contract name\n     * @param {Array} params - list of contracts passed to the constructor. Each parameter which is not a string or\n     * an unknown contract, is passed as-is to the constructor\n     *\n     * @returns {Object}\n     * @example\n     var storage = App.di.createInstance(\"data\", [\"compress\", true, \"websql\"]) ;\n     **/\n    createInstance(contractStr, params) {\n        let cr, instance\n            , self = this\n            , contract = this.contracts[contractStr];\n\n        function Dependency()\n        {\n            cr.apply(this, self.createInstanceList(contractStr, params));\n        }\n\n        cr = contract.classRef;\n\n        this.depCheck.push(contractStr);\n        Dependency.prototype = cr.prototype;   // Fix instanceof\n        instance = new Dependency();           // done\n        this.depCheck.pop();\n\n        return instance;\n    }\n\n    /** @private\n     * Convert a list of contracts into a list of instances\n     * A dependency list can contain arrays with dependencies too:\n     *    [\"depA\", [\"depB\", \"depC\"], \"depE\"]\n     * In this case, the constructor would, for example, look like this:\n     *    function constructor(instance, array, instance) { .. }\n     * */\n    createInstanceList(contractStr, params) {\n        let constParams = []\n            , contract = this.contracts[contractStr]\n            , mergedParams = this.mergeParams(contract, params);\n\n        mergedParams.forEach((item) => {\n            if (Array.isArray(item))\n            {\n                constParams.push(item.reduce(\n                        (list, val) => {\n                            list.push(this.getInstance(val));\n\n                            return list;\n                        }, []));\n            }\n            else\n            {\n                constParams.push(this.createInstanceIfContract(item));\n            }\n        });\n\n        return constParams;\n    }\n\n    /** @private\n     *\n     * Create or reuse a singleton instance\n     */\n    getSingletonInstance(contractStr, params) {\n        let contract = this.contracts[contractStr]\n            , mergedParams = this.mergeParams(contract, params);\n\n        if (contract.instance === undefined || (params && params.length > 0))\n        {\n            contract.params = mergedParams;\n            contract.instance = this.createInstance(contractStr);\n        }\n\n        return contract.instance;\n    }\n\n    /** @private\n     *\n     * @param contract\n     * @returns {*}\n     */\n    createInstanceIfContract(contractStr) {                                     // is a contract\n        let problemContract\n            , constParam = contractStr;\n\n        if (typeof(contractStr) === 'string' && this.contracts[contractStr])  // is 'contract' just a contructor parameter or a contract?\n        {\n            if (this.depCheck.indexOf(contractStr) === -1)                        // check for circular dependency\n            {\n                constParam = this.getInstance(contractStr);                    // create the instance\n                this.depCheck.pop();                                           // done, remove dependency from the list\n            }\n            else\n            { // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!\n                problemContract = this.depCheck[0];\n                this.depCheck.length = 0;                                      // cleanup\n                throw Error(\"Circular dependency detected for contract \" + problemContract);\n            }\n        }\n\n        return constParam;\n    }\n\n    extractContracts(classRef) {\n        let args = classRef.toString().match(/(?:(?:^function|constructor)[^\\(]*\\()([^\\)]+)/);\n\n        return args === null ? [] : args.slice(-1)[0].replace(/\\s/g, '').split(',');\n    }\n}\n\n\n"
   },
   {
     "__docId__": 1,
@@ -38,9 +38,18 @@
     "memberof": "javascript-dependency-injection/di.js~DI",
     "longname": "javascript-dependency-injection/di.js~DI#constructor",
     "access": null,
-    "description": null,
-    "lineNumber": 2,
-    "undocument": true,
+    "description": "DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,\nfacilitating lazy initialization and loose coupling between classes.\n\nAs an example, consider a User and Persitance classes:\n\n    class WebSql {\n        constructor(name, fieldList)  { ... }\n        persist(obj) { ... }\n   }\n\n    class IndexDB {\n        constructor(name, fieldList)  { ... }\n        persist(obj) { ... }\n    }\n\n    class User {\n        constructor(email, passwd, storage, role) { ... }\n        save() { this.storage.persist(this); }\n    }\n\nWith these classes in our pocket its time to setup the relations between them. The function that does this has the\nfollowing signature\n\n    function (<contract name>,\n              <class reference>,\n              [optional list of constructor arguments],\n              {optional configuration object} )\n\nOr just in code:\n\n    var di = new DI();\n\n    di.register('$user', User, [null, 'welcome', '$websql', 'nobody']);\n    di.register('$websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});\n    di.register('$indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: true});\n\nNote that the constructor arguments are default values or contract names. Now it is easy to create\ninstances:\n\n    var user1 = di.getInstance('user', 'john@exampe.com'),\n          -> email: 'john@exampe.com', passwd: 'welcome', storage : WebSQL instance, role: 'nobody'\n        user2 = di.getInstance('user', 'john@exampe.com', 'newSecret'); // define a new password\n          -> email: 'john@exampe.com', passwd: 'newSecret', storage : WebSQL instance, role: 'nobody'\n\n    if (user1 instanceof User) { ... } // user1 is an instance of User!!\n\nBut it is also possible to use `IndexDB` as the persistance class:\n\n    var user = di.getInstance('user', 'john@exampe.com', null, 'indexdb'), // The password is set to null too!\n          -> email: 'john@exampe.com', passwd: null, storage : IndexDB instance, role: 'nobody'\n        root = di.getInstance('user', 'john@exampe.com', undefined, 'indexdb', 'admin');\n          -> email: 'john@exampe.com', passwd: 'welcome', storage : IndexDB instance, role: 'admin'",
+    "lineNumber": 60,
+    "unknown": [
+      {
+        "tagName": "@class",
+        "tagValue": "DI"
+      },
+      {
+        "tagName": "@constructor",
+        "tagValue": ""
+      }
+    ],
     "params": [],
     "generator": false
   },
@@ -54,7 +63,7 @@
     "longname": "javascript-dependency-injection/di.js~DI#depCheck",
     "access": "private",
     "description": null,
-    "lineNumber": 7,
+    "lineNumber": 65,
     "type": {
       "nullable": null,
       "types": [
@@ -66,6 +75,26 @@
   },
   {
     "__docId__": 4,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "contracts",
+    "memberof": "javascript-dependency-injection/di.js~DI",
+    "longname": "javascript-dependency-injection/di.js~DI#contracts",
+    "access": "private",
+    "description": "",
+    "lineNumber": 72,
+    "type": {
+      "nullable": null,
+      "types": [
+        "{}"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 5,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -138,18 +167,6 @@
         "optional": true,
         "defaultValue": "false",
         "defaultRaw": false,
-        "name": "options.noClassRef",
-        "description": "the reference is not a constructor but something else"
-      },
-      {
-        "nullable": null,
-        "types": [
-          "String"
-        ],
-        "spread": false,
-        "optional": true,
-        "defaultValue": "false",
-        "defaultRaw": false,
         "name": "options.singleton",
         "description": "create a new instance every time"
       },
@@ -160,8 +177,20 @@
         ],
         "spread": false,
         "optional": true,
-        "name": "options.description",
-        "description": "describes the contract (currently only used by {{#crossLink \"DI/listContracts:method\"}}{{/crossLink}})."
+        "name": "options.factoryFor",
+        "description": "name of the contract for which it is a factory"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "false",
+        "defaultRaw": false,
+        "name": "options.writable",
+        "description": "append (=false) or replace (=true) construtor arguments"
       }
     ],
     "return": {
@@ -175,7 +204,7 @@
     "generator": false
   },
   {
-    "__docId__": 5,
+    "__docId__": 6,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -187,7 +216,7 @@
     "examples": [
       "App.di.register(\"ajax\", [\"rest\"]) ;\nvar ajax = App.di.getInstance(\"ajax\") ;\najax = App.di.getInstance(\"ajax\", \"rest\", true) ;"
     ],
-    "lineNumber": 126,
+    "lineNumber": 170,
     "unknown": [
       {
         "tagName": "@method",
@@ -227,7 +256,96 @@
     "generator": false
   },
   {
-    "__docId__": 6,
+    "__docId__": 7,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "createFactory",
+    "memberof": "javascript-dependency-injection/di.js~DI",
+    "longname": "javascript-dependency-injection/di.js~DI#createFactory",
+    "access": "private",
+    "description": "",
+    "lineNumber": 202,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{function()}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "*"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "contractStr",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "*"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "initialParams",
+        "description": ""
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "function()"
+      ],
+      "spread": false,
+      "description": ""
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 8,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "mergeParams",
+    "memberof": "javascript-dependency-injection/di.js~DI",
+    "longname": "javascript-dependency-injection/di.js~DI#mergeParams",
+    "access": "private",
+    "description": "",
+    "lineNumber": 216,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "*"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "contract",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "*"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "params",
+        "description": ""
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 9,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -239,7 +357,7 @@
     "examples": [
       "var storage = App.di.createInstance(\"data\", [\"compress\", true, \"websql\"]) ;"
     ],
-    "lineNumber": 161,
+    "lineNumber": 248,
     "unknown": [
       {
         "tagName": "@method",
@@ -283,7 +401,7 @@
     "generator": false
   },
   {
-    "__docId__": 7,
+    "__docId__": 10,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -292,10 +410,10 @@
     "longname": "javascript-dependency-injection/di.js~DI#createInstanceList",
     "access": "private",
     "description": null,
-    "lineNumber": 189,
+    "lineNumber": 275,
     "params": [
       {
-        "name": "contract",
+        "name": "contractStr",
         "types": [
           "*"
         ]
@@ -315,7 +433,7 @@
     "generator": false
   },
   {
-    "__docId__": 8,
+    "__docId__": 11,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -324,10 +442,10 @@
     "longname": "javascript-dependency-injection/di.js~DI#getSingletonInstance",
     "access": "private",
     "description": null,
-    "lineNumber": 211,
+    "lineNumber": 303,
     "params": [
       {
-        "name": "contract",
+        "name": "contractStr",
         "types": [
           "*"
         ]
@@ -347,7 +465,7 @@
     "generator": false
   },
   {
-    "__docId__": 9,
+    "__docId__": 12,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -356,7 +474,7 @@
     "longname": "javascript-dependency-injection/di.js~DI#createInstanceIfContract",
     "access": "private",
     "description": null,
-    "lineNumber": 234,
+    "lineNumber": 321,
     "unknown": [
       {
         "tagName": "@returns",
@@ -386,7 +504,171 @@
     "generator": false
   },
   {
-    "__docId__": 11,
+    "__docId__": 13,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "extractContracts",
+    "memberof": "javascript-dependency-injection/di.js~DI",
+    "longname": "javascript-dependency-injection/di.js~DI#extractContracts",
+    "access": null,
+    "description": null,
+    "lineNumber": 343,
+    "undocument": true,
+    "params": [
+      {
+        "name": "classRef",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 14,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "javascript-dependency-injection/dist/di.js",
+    "memberof": null,
+    "longname": "javascript-dependency-injection/dist/di.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "'use strict';\n\nObject.defineProperty(exports, \"__esModule\", {\n    value: true\n});\n\nvar _typeof = typeof Symbol === \"function\" && typeof Symbol.iterator === \"symbol\" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === \"function\" && obj.constructor === Symbol ? \"symbol\" : typeof obj; };\n\nvar _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n\nfunction _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nvar DI = function () {\n    /**\n     * DI makes classes accessible by a contract. Instances are created when requested and dependencies are injected into the constructor,\n     * facilitating lazy initialization and loose coupling between classes.\n     *\n     * As an example, consider a User and Persitance classes:\n     *\n     *     class WebSql {\n         *         constructor(name, fieldList)  { ... }\n         *         persist(obj) { ... }\n         *    }\n     *\n     *     class IndexDB {\n         *         constructor(name, fieldList)  { ... }\n         *         persist(obj) { ... }\n         *     }\n     *\n     *     class User {\n         *         constructor(email, passwd, storage, role) { ... }\n         *         save() { this.storage.persist(this); }\n         *     }\n     *\n     * With these classes in our pocket its time to setup the relations between them. The function that does this has the\n     * following signature\n     *\n     *     function (<contract name>,\n     *               <class reference>,\n     *               [optional list of constructor arguments],\n     *               {optional configuration object} )\n     *\n     * Or just in code:\n     *\n     *     var di = new DI();\n     *\n     *     di.register('$user', User, [null, 'welcome', '$websql', 'nobody']);\n     *     di.register('$websql', WebSql, ['userTable', ['email','passwd', 'role']], {singleton: true});\n     *     di.register('$indexdb', IndexDB, ['userTable', ['email','passwd', 'role']], {singleton: true});\n     *\n     * Note that the constructor arguments are default values or contract names. Now it is easy to create\n     * instances:\n     *\n     *     var user1 = di.getInstance('user', 'john@exampe.com'),\n     *           -> email: 'john@exampe.com', passwd: 'welcome', storage : WebSQL instance, role: 'nobody'\n     *         user2 = di.getInstance('user', 'john@exampe.com', 'newSecret'); // define a new password\n     *           -> email: 'john@exampe.com', passwd: 'newSecret', storage : WebSQL instance, role: 'nobody'\n     *\n     *     if (user1 instanceof User) { ... } // user1 is an instance of User!!\n     *\n     * But it is also possible to use `IndexDB` as the persistance class:\n     *\n     *     var user = di.getInstance('user', 'john@exampe.com', null, 'indexdb'), // The password is set to null too!\n     *           -> email: 'john@exampe.com', passwd: null, storage : IndexDB instance, role: 'nobody'\n     *         root = di.getInstance('user', 'john@exampe.com', undefined, 'indexdb', 'admin');\n     *           -> email: 'john@exampe.com', passwd: 'welcome', storage : IndexDB instance, role: 'admin'\n     *\n     *\n     * @class DI\n     * @constructor\n     **/\n\n    function DI() {\n        _classCallCheck(this, DI);\n\n        /** @private\n         *  Used to check for circular dependencies\n         * @type {Array}\n         */\n        this.depCheck = [];\n\n        /**\n         * @private\n         * Used to store all the registered contracts\n         * @type {{}}\n         */\n        this.contracts = {};\n    }\n\n    /**\n     * Register a class by creating a contract. Use {{#crossLink \"DI/getInstance:method\"}}{{/crossLink}} to obtain\n     * an instance from this contract. The <tt>params</tt> parameter is a list of contracts,  and, if needed, normal\n     * constructor parameters can be mixed in.\n     *\n     * @method register\n     * @chainable\n     * @param {String} contract name of the contract\n     * @param {Class} classRef the class bind to this contract\n     * @param {Array} [params] list of constructor parameters. Only if a parameter is a string and matches a contract, it\n     * will be replaced with the corresponding instance\n     * @param {Object} [options] configuration\n     *      @param {String} [options.singleton=false] create a new instance every time\n     *      @param {String} [options.factoryFor] name of the contract for which it is a factory\n     *      @param {String} [options.writable=false]  append (=false) or replace (=true) construtor arguments\n     * @return {Object} this\n     * @example\n     App.di.registerType(\"ajax\", App.AJAX) ;\n     App.di.registerType(\"ajax\", App.AJAX, [], { singleton: true }) ;\n     App.di.registerType(\"util\", App.Util, [\"compress\", true, [\"wsql\", \"ls\"] ], { singleton: true } ) ;\n     **/\n\n\n    _createClass(DI, [{\n        key: 'register',\n        value: function register(contractStr, classRef) {\n            var params = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];\n            var options = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];\n\n            if (Array.isArray(classRef)) {\n                options = params;\n                params = classRef;\n                classRef = null;\n            } else if ((typeof classRef === 'undefined' ? 'undefined' : _typeof(classRef)) === 'object') {\n                options = classRef;\n                classRef = null;\n            }\n\n            if (!Array.isArray(params)) // no params defined\n                {\n                    options = params;\n                    params = [];\n                }\n\n            // --debug-start--\n            if (!classRef) {\n                if (!options.factoryFor) {\n                    console.warn('#register(' + contractStr + '): \\'classRef\\' is not defined');\n                }\n            } else if (typeof classRef !== 'function') {\n                console.warn('#register(' + contractStr + '): \\'classRef\\' is not a function');\n            }\n            // --debug-end--\n\n            if (classRef && options.autoDetect !== false) {\n                params = params.length === 0 ? this.extractContracts(classRef) : params;\n            }\n\n            this.contracts[contractStr] = {\n                classRef: classRef,\n                params: params,\n                options: options\n            };\n\n            // Prepare factory if not manually defined\n            if (!options.factoryFor && !this.contracts[contractStr + 'Factory']) {\n                this.contracts[contractStr + 'Factory'] = {\n                    options: {\n                        factoryFor: contractStr,\n                        writable: options.writable\n                    },\n                    params: []\n                };\n            }\n\n            return this;\n        }\n\n        /**\n         * Returns an instance for the given contract. Use <tt>params</tt> attribute to overwrite the default\n         * parameters for this contract. If <tt>params</tt> is defined, the singleton will be (re)created and its\n         * parameters are updated.\n         *\n         * @method getInstance\n         * @param  {String} contract name\n         * @param  {...*} [params] constructor parameters which, if defined, replaces its default arguments (see {{#crossLink \"DI/register:method\"}}{{/crossLink}} )\n         * @return {Object} Class instance\n         * @example\n         App.di.register(\"ajax\", [\"rest\"]) ;\n         var ajax = App.di.getInstance(\"ajax\") ;\n         ajax = App.di.getInstance(\"ajax\", \"rest\", true) ;\n         **/\n\n    }, {\n        key: 'getInstance',\n        value: function getInstance(contractStr) {\n            var instance = null,\n                contract = this.contracts[contractStr];\n\n            if (contract) {\n                for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {\n                    params[_key - 1] = arguments[_key];\n                }\n\n                if (contract.options.singleton) {\n                    instance = this.getSingletonInstance(contractStr, params);\n                } else //create a new instance every time\n                    {\n                        if (contract.options.factoryFor) {\n                            instance = this.createFactory(contractStr, params);\n                        } else {\n                            instance = this.createInstance(contractStr, params);\n                        }\n                    }\n            }\n\n            return instance || (this.depCheck.length === 0 ? null : contractStr);\n        }\n\n        /**\n         * @private\n         * @param contractStr\n         * @param initialParams\n         * @returns {function()}\n         */\n\n    }, {\n        key: 'createFactory',\n        value: function createFactory(contractStr, initialParams) {\n            var _this = this;\n\n            var contract = this.contracts[contractStr],\n                baseParams = this.mergeParams(contract, initialParams);\n\n            return function () {\n                for (var _len2 = arguments.length, params = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {\n                    params[_key2] = arguments[_key2];\n                }\n\n                return _this.getInstance.apply(_this, [contract.options.factoryFor].concat(_toConsumableArray(_this.mergeParams(contract, params, baseParams))));\n            };\n        }\n\n        /**\n         * @private\n         * @param contract\n         * @param params\n         */\n\n    }, {\n        key: 'mergeParams',\n        value: function mergeParams(contract) {\n            var newParams = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];\n            var initialParams = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];\n\n            var mergedParams = [];\n\n            initialParams = initialParams.length === 0 ? contract.params : initialParams;\n\n            if (contract.options.writable) {\n                for (var i = 0; i < Math.max(newParams.length, initialParams.length); i++) {\n                    mergedParams.push(newParams[i] === undefined ? initialParams[i] : newParams[i]);\n                }\n            } else {\n                mergedParams = [].concat(_toConsumableArray(initialParams), _toConsumableArray(newParams));\n            }\n\n            return mergedParams;\n        }\n\n        /**\n         * @private\n         * Returns a new instance of the class matched by the contract.\n         *\n         * @method createInstance\n         * @param {string} contract - the contract name\n         * @param {Array} params - list of contracts passed to the constructor. Each parameter which is not a string or\n         * an unknown contract, is passed as-is to the constructor\n         *\n         * @returns {Object}\n         * @example\n         var storage = App.di.createInstance(\"data\", [\"compress\", true, \"websql\"]) ;\n         **/\n\n    }, {\n        key: 'createInstance',\n        value: function createInstance(contractStr, params) {\n            var cr = void 0,\n                instance = void 0,\n                self = this,\n                contract = this.contracts[contractStr];\n\n            function Dependency() {\n                cr.apply(this, self.createInstanceList(contractStr, params));\n            }\n\n            cr = contract.classRef;\n\n            this.depCheck.push(contractStr);\n            Dependency.prototype = cr.prototype; // Fix instanceof\n            instance = new Dependency(); // done\n            this.depCheck.pop();\n\n            return instance;\n        }\n\n        /** @private\n         * Convert a list of contracts into a list of instances\n         * A dependency list can contain arrays with dependencies too:\n         *    [\"depA\", [\"depB\", \"depC\"], \"depE\"]\n         * In this case, the constructor would, for example, look like this:\n         *    function constructor(instance, array, instance) { .. }\n         * */\n\n    }, {\n        key: 'createInstanceList',\n        value: function createInstanceList(contractStr, params) {\n            var _this2 = this;\n\n            var constParams = [],\n                contract = this.contracts[contractStr],\n                mergedParams = this.mergeParams(contract, params);\n\n            mergedParams.forEach(function (item) {\n                if (Array.isArray(item)) {\n                    constParams.push(item.reduce(function (list, val) {\n                        list.push(_this2.getInstance(val));\n\n                        return list;\n                    }, []));\n                } else {\n                    constParams.push(_this2.createInstanceIfContract(item));\n                }\n            });\n\n            return constParams;\n        }\n\n        /** @private\n         *\n         * Create or reuse a singleton instance\n         */\n\n    }, {\n        key: 'getSingletonInstance',\n        value: function getSingletonInstance(contractStr, params) {\n            var contract = this.contracts[contractStr],\n                mergedParams = this.mergeParams(contract, params);\n\n            if (contract.instance === undefined || params && params.length > 0) {\n                contract.params = mergedParams;\n                contract.instance = this.createInstance(contractStr);\n            }\n\n            return contract.instance;\n        }\n\n        /** @private\n         *\n         * @param contract\n         * @returns {*}\n         */\n\n    }, {\n        key: 'createInstanceIfContract',\n        value: function createInstanceIfContract(contractStr) {\n            // is a contract\n            var problemContract = void 0,\n                constParam = contractStr;\n\n            if (typeof contractStr === 'string' && this.contracts[contractStr]) // is 'contract' just a contructor parameter or a contract?\n                {\n                    if (this.depCheck.indexOf(contractStr) === -1) // check for circular dependency\n                        {\n                            constParam = this.getInstance(contractStr); // create the instance\n                            this.depCheck.pop(); // done, remove dependency from the list\n                        } else {\n                            // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!\n                            problemContract = this.depCheck[0];\n                            this.depCheck.length = 0; // cleanup\n                            throw Error(\"Circular dependency detected for contract \" + problemContract);\n                        }\n                }\n\n            return constParam;\n        }\n    }, {\n        key: 'extractContracts',\n        value: function extractContracts(classRef) {\n            var args = classRef.toString().match(/(?:(?:^function|constructor)[^\\(]*\\()([^\\)]+)/);\n\n            return args === null ? [] : args.slice(-1)[0].replace(/\\s/g, '').split(',');\n        }\n    }]);\n\n    return DI;\n}();\n\nexports.default = DI;"
+  },
+  {
+    "__docId__": 15,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "_typeof",
+    "memberof": "javascript-dependency-injection/dist/di.js",
+    "longname": "javascript-dependency-injection/dist/di.js~_typeof",
+    "access": null,
+    "export": false,
+    "importPath": "javascript-dependency-injection/javascript-dependency-injection/dist/di.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 7,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 16,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "_createClass",
+    "memberof": "javascript-dependency-injection/dist/di.js",
+    "longname": "javascript-dependency-injection/dist/di.js~_createClass",
+    "access": null,
+    "export": false,
+    "importPath": "javascript-dependency-injection/javascript-dependency-injection/dist/di.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 9,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 17,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "_toConsumableArray",
+    "memberof": "javascript-dependency-injection/dist/di.js",
+    "longname": "javascript-dependency-injection/dist/di.js~_toConsumableArray",
+    "access": null,
+    "export": false,
+    "importPath": "javascript-dependency-injection/javascript-dependency-injection/dist/di.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 11,
+    "undocument": true,
+    "params": [
+      {
+        "name": "arr",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 18,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "_classCallCheck",
+    "memberof": "javascript-dependency-injection/dist/di.js",
+    "longname": "javascript-dependency-injection/dist/di.js~_classCallCheck",
+    "access": null,
+    "export": false,
+    "importPath": "javascript-dependency-injection/javascript-dependency-injection/dist/di.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 13,
+    "undocument": true,
+    "params": [
+      {
+        "name": "instance",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "Constructor",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 19,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "DI",
+    "memberof": "javascript-dependency-injection/dist/di.js",
+    "longname": "javascript-dependency-injection/dist/di.js~DI",
+    "access": null,
+    "export": false,
+    "importPath": "javascript-dependency-injection/javascript-dependency-injection/dist/di.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 21,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -399,7 +681,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 12,
+    "__docId__": 22,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -412,7 +694,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 13,
+    "__docId__": 23,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -425,7 +707,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 14,
+    "__docId__": 24,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -438,7 +720,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 15,
+    "__docId__": 25,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -451,7 +733,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 16,
+    "__docId__": 26,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -464,7 +746,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 17,
+    "__docId__": 27,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -477,7 +759,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 18,
+    "__docId__": 28,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -490,7 +772,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 19,
+    "__docId__": 29,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -503,7 +785,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 20,
+    "__docId__": 30,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -516,7 +798,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 21,
+    "__docId__": 31,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -529,7 +811,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 22,
+    "__docId__": 32,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -542,7 +824,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 23,
+    "__docId__": 33,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -555,7 +837,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 24,
+    "__docId__": 34,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -568,7 +850,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 25,
+    "__docId__": 35,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -581,7 +863,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 26,
+    "__docId__": 36,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -594,7 +876,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 27,
+    "__docId__": 37,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -607,7 +889,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 28,
+    "__docId__": 38,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -620,7 +902,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 29,
+    "__docId__": 39,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -633,7 +915,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 30,
+    "__docId__": 40,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -646,7 +928,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 31,
+    "__docId__": 41,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -659,7 +941,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 32,
+    "__docId__": 42,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -672,7 +954,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 33,
+    "__docId__": 43,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -685,7 +967,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 34,
+    "__docId__": 44,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -698,7 +980,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 35,
+    "__docId__": 45,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -711,7 +993,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 36,
+    "__docId__": 46,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -724,7 +1006,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 37,
+    "__docId__": 47,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -737,7 +1019,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 38,
+    "__docId__": 48,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -750,7 +1032,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 39,
+    "__docId__": 49,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -763,7 +1045,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 40,
+    "__docId__": 50,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -776,7 +1058,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 41,
+    "__docId__": 51,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -789,7 +1071,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 42,
+    "__docId__": 52,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -802,7 +1084,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 43,
+    "__docId__": 53,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -815,7 +1097,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 44,
+    "__docId__": 54,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -828,7 +1110,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 45,
+    "__docId__": 55,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -841,7 +1123,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 46,
+    "__docId__": 56,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -854,7 +1136,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 47,
+    "__docId__": 57,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -867,7 +1149,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 48,
+    "__docId__": 58,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -880,7 +1162,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 49,
+    "__docId__": 59,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -893,7 +1175,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 50,
+    "__docId__": 60,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -906,7 +1188,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 51,
+    "__docId__": 61,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -919,7 +1201,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 52,
+    "__docId__": 62,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -932,7 +1214,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 53,
+    "__docId__": 63,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -945,7 +1227,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 54,
+    "__docId__": 64,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -958,7 +1240,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 55,
+    "__docId__": 65,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -971,7 +1253,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 56,
+    "__docId__": 66,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -984,7 +1266,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 57,
+    "__docId__": 67,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -997,7 +1279,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 59,
+    "__docId__": 69,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1010,7 +1292,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 60,
+    "__docId__": 70,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1023,7 +1305,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 61,
+    "__docId__": 71,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1036,7 +1318,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 62,
+    "__docId__": 72,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1049,7 +1331,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 63,
+    "__docId__": 73,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1062,7 +1344,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 64,
+    "__docId__": 74,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1075,7 +1357,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 65,
+    "__docId__": 75,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1088,7 +1370,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 66,
+    "__docId__": 76,
     "kind": "external",
     "static": true,
     "variation": null,
