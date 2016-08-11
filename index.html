@@ -18,6 +18,7 @@
         di.register('$bar', Bar, {writable: true});
 
         var bar = di.getInstance('$bar', undefined, 99);
+        var test = di.getInstance('$bar', 0, 99);
         var foo = di.getInstance('$foo');
     </script>
 <head>
@@ -44,6 +45,7 @@
 
             var bar = di.getInstance('$bar', undefined, 99);
             var foo = di.getInstance('$foo');
+            var test = di.getInstance('$bar', 0, 99);
         </pre>
     </p>
 
