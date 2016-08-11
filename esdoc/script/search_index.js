@@ -366,6 +366,18 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "javascript-dependency-injection/di.js~di#remove",
+    "class/javascript-dependency-injection/di.js~DI.html#instance-method-remove",
+    "javascript-dependency-injection/di.js~DI#remove",
+    "method"
+  ],
+  [
+    "javascript-dependency-injection/di.js~di#reset",
+    "class/javascript-dependency-injection/di.js~DI.html#instance-method-reset",
+    "javascript-dependency-injection/di.js~DI#reset",
+    "method"
+  ],
+  [
     "javascript-dependency-injection/dist/di.js",
     "file/javascript-dependency-injection/dist/di.js.html",
     "javascript-dependency-injection/dist/di.js",

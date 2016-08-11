@@ -43,6 +43,7 @@
 <a href="http://inch-ci.org/github/scaljeri/javascript-dependency-injection"><img src="http://inch-ci.org/github/scaljeri/javascript-dependency-injection.svg?branch=master&amp;style=flat-square" alt="Inline docs"></a></p>
 <p><a href="https://gitter.im/scaljeri/javascript-dependency-injection?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter"></a></p>
 <h2 id="javascript-dependency-injection-di-library-written-in-es2015">Javascript Dependency Injection (DI) library written in ES2015</h2>
+<p>You can find a demo, documentation and a code coverage report <a href="http://scaljeri.github.io/javascript-dependency-injection/">here</a></p>
 <p> <strong>DI</strong> makes classes accessible by a contract. Instances are created when requested and 
  dependencies are injected into the constructor, facilitating lazy initialization and 
  loose coupling between classes --&gt; maintainable and testable code!!!!</p>
@@ -55,26 +56,26 @@
  class Foo {}</code>
 </code></pre><p>These classes can be registed as follows</p>
 <pre><code><code class="source-code prettyprint">di.register(&apos;$bar&apos;, Bar);               // $bar         - is the name of the contract (can be anything),
-                                        // Bar          - the class reference and
+                                        // Bar          - the class reference
 di.register(&apos;$foo&apos;, Foo);               // The order of registration is irrelevant (lazy initialization!)</code>
 </code></pre><p>Finaly, use <code>getInstance</code> to initialize <code>Bar</code></p>
 <pre><code><code class="source-code prettyprint">let bar = di.getInstance(&apos;$bar&apos;, 10);   // bar instanceof Bar
                                         // bar.foo instanceOf Foo -&gt; true
-                                        // bar.va === 10</code>
+                                        // bar.val === 10</code>
 </code></pre><p><strong>DI</strong> knows how to initiate <code>Bar</code> by inspecting the constructor arguments. 
 Each argument is mapped against the list of contracts and because <code>$foo</code> is in that list it is replaced with 
 an instance of <code>Foo</code></p>
-<p>If you like to be more explicit in the way you define the relations, you can define the constructor youself</p>
-<pre><code><code class="source-code prettyprint">di.register(&apos;$bar&apos;, Foo, [&apos;$foo&apos;]);</code>
+<p>If you like to be more explicit, you can define the constructor arguments youself</p>
+<pre><code><code class="source-code prettyprint">di.register(&apos;$bar&apos;, Bar, [&apos;$foo&apos;]);</code>
 </code></pre><h3 id="singletons">Singletons</h3>
 <p>If you need a class to be a singleton, just tell <strong>DI</strong></p>
-<pre><code><code class="source-code prettyprint"> di.register(&apos;$bar&apos;, Bar, [$foo, 10], { singleton: true });
+<pre><code><code class="source-code prettyprint"> di.register(&apos;$bar&apos;, Bar, { singleton: true });
  // di.getInstance(&apos;$bar&apos;) === di.getInstance(&apos;$bar&apos;)</code>
 </code></pre><h3 id="factories">Factories</h3>
 <p>A class can produces instances of an other class</p>
 <pre><code><code class="source-code prettyprint"> class Bar {
-     getFoo() {
-         return new Foo(this.input);
+     getFoo(input) {
+         return new Foo(input);
      }
  }</code>
 </code></pre><p>In order to rewrite this using DI, Factories come to the rescue </p>
@@ -82,40 +83,39 @@ an instance of <code>Foo</code></p>
      constructor(fooFactory) { this.fooFactory = fooFactory; }
 
      getFoo(input) { 
-        return this.fooFactory(this.input);  
+        return this.fooFactory(input);  
      }
  }</code>
 </code></pre><p>and the relations are now defined as follows</p>
 <pre><code><code class="source-code prettyprint"> di.register(&apos;$bar&apos;, Bar, [&apos;$fooFactory&apos;]);
 
  di.register(&apos;$foo&apos;, Foo);</code>
-</code></pre><p>That&apos;s all, the factory is created auto magically!</p>
+</code></pre><p>That&apos;s all, the Foo-factory is created auto magically!</p>
 <p>If you really want to create a factory yourself, you can</p>
-<pre><code><code class="source-code prettyprint"> di.register(&apos;$barFactory&apos;, null, [&apos;list&apos;, &apos;of&apos;, &apos;params&apos;], { factoryFor: &apos;$bar&apos; });</code>
+<pre><code><code class="source-code prettyprint"> di.register(&apos;$fooFactory&apos;, [&apos;list&apos;, &apos;of&apos;, &apos;params&apos;], { factoryFor: &apos;$bar&apos; });</code>
 </code></pre><h2 id="parameters">Parameters</h2>
 <p>Now things get a bit tricky, because parameters can be set at different places and
 some kind of parameter-inheritance happens. For example</p>
 <pre><code><code class="source-code prettyprint"> di.register(&apos;$bar&apos;, Bar, [&apos;p1&apos;, &apos;p2&apos;, &apos;p3&apos;, &apos;p4&apos;]);
  let bar = di.getInstance(&apos;$bar&apos;, &apos;p5&apos;, &apos;p6&apos;, &apos;p7&apos;);</code>
-</code></pre><p>The <code>getInstance</code> method accepts constructor arguments too. <code>Bar</code> is initialized with </p>
-<pre><code><code class="source-code prettyprint">  &apos;p1&apos;, &apos;p2&apos;, &apos;p3&apos;, &apos;p4&apos;, &apos;p5&apos;, &apos;p6&apos;, &apos;p7&apos;</code>
+</code></pre><p>The <code>getInstance</code> method accepts constructor arguments too. The above is equivalent o</p>
+<pre><code><code class="source-code prettyprint">  new Bar(&apos;p1&apos;, &apos;p2&apos;, &apos;p3&apos;, &apos;p4&apos;, &apos;p5&apos;, &apos;p6&apos;, &apos;p7&apos;);</code>
 </code></pre><p>The parameters are added. But what if you like to replace the initial parameter?</p>
 <pre><code><code class="source-code prettyprint"> di.register(&apos;$bar&apos;, Bar, [&apos;p1&apos;, &apos;p2&apos;, &apos;p3&apos;, &apos;p4&apos;], { writable: true });
  let bar = di.getInstance(&apos;$bar&apos;, &apos;p5&apos;, &apos;p6&apos;, &apos;p7&apos;);</code>
 </code></pre><p>This time the constructor arguments are</p>
 <pre><code><code class="source-code prettyprint"> &apos;p5&apos;, &apos;p6&apos;, &apos;p7&apos;, &apos;p4&apos;</code>
-</code></pre><p>Important note here is that an initial parameter is only replaced if the 
+</code></pre><p>Important to note here is that an initial parameter is only replaced if the 
 new parameter not equals <code>undefined</code>. </p>
 <p>With factories, you have this behavior too, but also an extra inheritance layer. 
 Check this out</p>
-<pre><code><code class="source-code prettyprint">di.register(&apos;$barFactory&apos;, null, [&apos;p1&apos;, &apos;p2&apos;, &apos;p3&apos;, &apos;p4&apos;, &apos;p5&apos;], { factoryFor: &apos;$bar&apos; });
-let barFactory = di.getInstance(&apos;$barFactory&apos;, &apos;p6&apos;, &apos;p7&apos;);
-let bar = barFactory(&apos;p8&apos;, &apos;p9&apos;);  // bar is initialized with &apos;p1&apos;, &apos;p2&apos;, ...., &apos;p9&apos;</code>
+<pre><code><code class="source-code prettyprint">di.register(&apos;$barFactory&apos;, [&apos;p1&apos;, &apos;p2&apos;, &apos;p3&apos;, &apos;p4&apos;, &apos;p5&apos;], { factoryFor: &apos;$bar&apos; });    
+let barFactory = di.getInstance(&apos;$barFactory&apos;, &apos;p6&apos;, &apos;p7&apos;);                            
+let bar = barFactory(&apos;p8&apos;, &apos;p9&apos;);  // bar is initialized with &apos;p1&apos;, &apos;p2&apos;, ...., &apos;p9&apos;   </code>
 </code></pre><p>For more advanced use-cases checkout the <a href="https://github.com/scaljeri/javascript-dependency-injection/blob/master/test/di.spec.js">unit tests</a>
 file.</p>
-<p>You can find a detailed API description + the code-coverage report <a href="http://scaljeri.github.io/javascript-dependency-injection/">here</a></p>
 <h4 id="installation">Installation</h4>
-<p>Install the dependencies as follows</p>
+<p>Install this library with <code>npm</code> </p>
 <pre><code><code class="source-code prettyprint">$&gt; npm install --save javascript-dependency-injection@beta</code>
 </code></pre><p>or</p>
 <pre><code><code class="source-code prettyprint">$&gt; bower install javascript-dependency-injection#2.0.0-beta.6</code>
@@ -126,13 +126,12 @@ file.</p>
 </code></pre><h3 id="todo">TODO</h3>
 <ol>
 <li>Destroy a contract</li>
-<li>Test Factory replacement</li>
 </ol>
 </div>
 </div>
 
 <footer class="footer">
-  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.7)</span></a>
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.8)</span></a>
 </footer>
 
 <script src="script/search_index.js"></script>
