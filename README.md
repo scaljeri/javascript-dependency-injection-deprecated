@@ -15,34 +15,33 @@ You can find a demo, documentation and a code coverage report [here](http://scal
  loose coupling between classes --> maintainable and testable code!!!!
  
 ### The Basics     
- 
+
 Consider the following situation in which the class `Bar` depends on `Foo`
 
      class Bar {
-         constructor($foo, val) { this.foo = $foo; this.val = val }
+         constructor(val1, $foo, val2) { this.foo = $foo; this.val1 = val1; ... }
      }
      
      class Foo {}
      
-These classes can be registed as follows
+These classes can be registered as follows
 
-    di.register('$bar', Bar);               // $bar         - is the name of the contract (can be anything),
-                                            // Bar          - the class reference
-    di.register('$foo', Foo);               // The order of registration is irrelevant (lazy initialization!)
+    di.register('$bar', Bar);                   // $bar - is the name of the contract (can be anything),
+                                                // Bar  - the class reference
+    di.register('$foo', Foo);                   // The order of registration is irrelevant (lazy initialization!)
     
-Finaly, use `getInstance` to initialize `Bar`
+Finally, use `getInstance` to create instances
 
-    let bar = di.getInstance('$bar', 10);   // bar instanceof Bar
-                                            // bar.foo instanceOf Foo -> true
-                                            // bar.val === 10
+    let bar = di.getInstance('$bar', 10, 20);   // bar instanceof Bar
+                                                // bar.val1 === 10
+                                                // bar.foo instanceOf Foo -> true
+                                                // bar.val2 === 20
     
-**DI** knows how to initiate `Bar` by inspecting the constructor arguments. 
-Each argument is mapped against the list of contracts and because `$foo` is in that list it is replaced with 
-an instance of `Foo`
+Note how `bar.foo` is an instance of `Foo` and not the value `20`!
 
-If you like to be more explicit, you can define the constructor arguments youself
+If you like to be more explicit, you can define the constructor arguments yourself
 
-    di.register('$bar', Bar, ['$foo']);
+    di.register('$bar', Bar, [undefined, '$foo', undefined]);
     
 ### Singletons
 If you need a class to be a singleton, just tell **DI**

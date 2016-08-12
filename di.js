@@ -347,9 +347,9 @@ export default class DI {
         let problemContract
             , constParam = contractStr;
 
-        if (typeof(contractStr) === 'string' && this.contracts[contractStr])  // is 'contract' just a contructor parameter or a contract?
+        if (typeof(contractStr) === 'string' && this.contracts[contractStr])   // is 'contract' just a contructor parameter or a contract?
         {
-            if (this.depCheck.indexOf(contractStr) === -1)                        // check for circular dependency
+            if (this.depCheck.indexOf(contractStr) === -1)                     // check for circular dependency
             {
                 constParam = this.getInstance(contractStr);                    // create the instance
                 this.depCheck.pop();                                           // done, remove dependency from the list
