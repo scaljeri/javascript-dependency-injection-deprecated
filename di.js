@@ -72,9 +72,9 @@ export default class DI {
         }
 
         // --debug-start--
-        if (!classRef) 
+        if (!classRef)
         {
-            if (!options.factoryFor) 
+            if (!options.factoryFor)
             {
                 console.warn(`#register(${contractStr}): 'classRef' is not defined`);
             }
@@ -93,10 +93,10 @@ export default class DI {
         }
 
         this.contracts[contractStr] = {
-            classRef: classRef,
-            params: params,
-            paramsOrigin: paramsOrigin,
-            options: options
+            classRef: classRef
+            , params: params
+            , paramsOrigin: paramsOrigin
+            , options: options
         };
 
         // Prepare factory if not manually defined
@@ -189,53 +189,75 @@ export default class DI {
      */
     createFactory(contractStr, initialParams) {
         let contract = this.contracts[contractStr]
-            , baseParams = this.mergeParams(contract, initialParams);
+            , factoryContract = {
+                options: contract.options
+                , params: this.mergeParams(contract, initialParams)
+            };
 
         return (...params) => {
-            return this.getInstance(contract.options.factoryFor, ...this.mergeParams(contract, params, baseParams));
+            return this.getInstance(factoryContract.options.factoryFor, ...this.mergeParams(factoryContract, params));
         };
     }
 
     /**
+     * Merge the params with the ones from the contract based on the `writable` property. The first
+     * step is to fix auto-determined parameters:
+     *
+     *     Auto determined parameters are parameters obtained from inspecting the class reference
+     *
+     * Each non contract string inside the contract params is set to `undefined`
+     *
+     * In the next step the parameters are merged. If `writable`, each element from `params` which is not `undefined`
+     * replaced a contract parameter.
+     *
+     *     contract.params: [undefined, '$bar', '$foo', undefined]
+     *     params: [1, '$baz']
+     *     output --> [1, '$baz', '$foo', undefined]
+     *
+     * If the contract is not writable, `params` only replaces `undefined` contract parameters. The remaining
+     * `params` are appended.
+     *
+     *     contract.params: [undefined, '$bar, '$foo', undefined]
+     *     params: [1, '$baz', 10]
+     *     output --> [1, '$bar', '$foo', '$baz, 10]
+     *
+     *
      * @private
      * @param contract
      * @param params
      */
-    mergeParams(contract, newParams = [], initialParams = []) {
-        let mergedParams = [], params = [];
+    mergeParams(contract, params = []) {
+        let baseParams
+            , indexParams = 0
+            , mergedParams = [];
 
-        if (contract.paramsOrigin === 'auto') {
-            let param, keepUndef = false;
-
-            for(let i = contract.params.length - 1; i >= 0; i--) {
-                param = contract.params[i];
-
-                if (this.contracts[param]) {
-                    params.unshift(param);
-                    keepUndef = true;
-                } else if(keepUndef) {
-                    params.unshift(undefined);
-
-                }
-            }
-        } else {
-            params = contract.params;
-        }
-
-        initialParams = initialParams.length === 0 ? params : initialParams;
-
-        if (contract.options.writable)
+        if (contract.paramsOrigin === 'auto')
         {
-            for (let i = 0; i < Math.max(newParams.length, initialParams.length); i++) {
-                mergedParams.push(newParams[i] === undefined ? initialParams[i] : newParams[i]);
-            }
+            baseParams = contract.params.map((param) => this.contracts[param] ? param : undefined);
         }
         else
         {
-            mergedParams = [...initialParams, ...newParams];
+            baseParams = contract.params;
         }
 
-        return mergedParams;
+        for (let index = 0; index < baseParams.length; index++)
+        {
+            if (baseParams[index] === undefined || (contract.options.writable && params[indexParams] !== undefined))
+            {
+                mergedParams.push(params[indexParams++]);
+            }
+            else
+            {
+                mergedParams.push(baseParams[index]);
+
+                if (contract.options.writable)
+                {
+                    indexParams++;
+                }
+            }
+        }
+
+        return mergedParams.concat(params.slice(indexParams));
     }
 
     /**
@@ -256,8 +278,7 @@ export default class DI {
             , self = this
             , contract = this.contracts[contractStr];
 
-        function Dependency()
-        {
+        function Dependency() {
             cr.apply(this, self.createInstanceList(contractStr, params));
         }
 
@@ -280,8 +301,7 @@ export default class DI {
      * */
     createInstanceList(contractStr, params) {
         let constParams = []
-            , contract = this.contracts[contractStr]
-            , mergedParams = this.mergeParams(contract, params);
+            , mergedParams = this.mergeParams(this.contracts[contractStr], params);
 
         mergedParams.forEach((item) => {
             if (Array.isArray(item))
