@@ -11,14 +11,15 @@
     </style>
     <script>
         var di = new DI();
-        function Bar($foo, val) { this.foo = $foo; this.val = val; }
-        function Foo(a) { this.a = a; }
+        function Bar(val1, $foo, val2) { this.args = arguments; }
+        function Foo(a) { this.args = arguments; }
 
         di.register('$foo', Foo, [10], {singleton: true});
         di.register('$bar', Bar, {writable: true});
+        di.register('$baz', Bar);
 
-        var bar = di.getInstance('$bar', undefined, 99);
-        var test = di.getInstance('$bar', 0, 99);
+        var bar = di.getInstance('$bar', 99, 100);
+        var baz = di.getInstance('$baz', 99, 100);
         var foo = di.getInstance('$foo');
     </script>
 <head>
@@ -35,17 +36,17 @@
         The code below has already been executed:<br>
 
         <pre>
-            function Bar($foo, val) { this.foo = $foo; this.val = val; }
-            function Foo(a) { this.a = a; }
-
             var di = new DI();
+            function Bar(val1, $foo, val2) { this.args = arguments; }
+            function Foo(a) { this.args = arguments; }
 
             di.register('$foo', Foo, [10], {singleton: true});
             di.register('$bar', Bar, {writable: true});
+            di.register('$baz', Bar);
 
-            var bar = di.getInstance('$bar', undefined, 99);
+            var bar = di.getInstance('$bar', 99, 100);
+            var baz = di.getInstance('$baz', 99, 100);
             var foo = di.getInstance('$foo');
-            var test = di.getInstance('$bar', 0, 99);
         </pre>
     </p>
 

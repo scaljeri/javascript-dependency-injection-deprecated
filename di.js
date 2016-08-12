@@ -216,18 +216,43 @@ var DI = function () {
             var _this = this;
 
             var contract = this.contracts[contractStr],
-                baseParams = this.mergeParams(contract, initialParams);
+                factoryContract = {
+                options: contract.options,
+                params: this.mergeParams(contract, initialParams)
+            };
 
             return function () {
                 for (var _len2 = arguments.length, params = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
                     params[_key2] = arguments[_key2];
                 }
 
-                return _this.getInstance.apply(_this, [contract.options.factoryFor].concat(_toConsumableArray(_this.mergeParams(contract, params, baseParams))));
+                return _this.getInstance.apply(_this, [factoryContract.options.factoryFor].concat(_toConsumableArray(_this.mergeParams(factoryContract, params))));
             };
         }
 
         /**
+         * Merge the params with the ones from the contract based on the `writable` property. The first
+         * step is to fix auto-determined parameters:
+         *
+         *     Auto determined parameters are parameters obtained from inspecting the class reference
+         *
+         * Each non contract string inside the contract params is set to `undefined`
+         *
+         * In the next step the parameters are merged. If `writable`, each element from `params` which is not `undefined`
+         * replaced a contract parameter.
+         *
+         *     contract.params: [undefined, '$bar', '$foo', undefined]
+         *     params: [1, '$baz']
+         *     output --> [1, '$baz', '$foo', undefined]
+         *
+         * If the contract is not writable, `params` only replaces `undefined` contract parameters. The remaining
+         * `params` are appended.
+         *
+         *     contract.params: [undefined, '$bar, '$foo', undefined]
+         *     params: [1, '$baz', 10]
+         *     output --> [1, '$bar', '$foo', '$baz, 10]
+         *
+         *
          * @private
          * @param contract
          * @param params
@@ -236,41 +261,35 @@ var DI = function () {
     }, {
         key: 'mergeParams',
         value: function mergeParams(contract) {
-            var newParams = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
-            var initialParams = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
+            var _this2 = this;
 
-            var mergedParams = [],
-                params = [];
+            var params = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+
+            var baseParams = void 0,
+                indexParams = 0,
+                mergedParams = [];
 
             if (contract.paramsOrigin === 'auto') {
-                var param = void 0,
-                    keepUndef = false;
+                baseParams = contract.params.map(function (param) {
+                    return _this2.contracts[param] ? param : undefined;
+                });
+            } else {
+                baseParams = contract.params;
+            }
 
-                for (var i = contract.params.length - 1; i >= 0; i--) {
-                    param = contract.params[i];
+            for (var index = 0; index < baseParams.length; index++) {
+                if (baseParams[index] === undefined || contract.options.writable && params[indexParams] !== undefined) {
+                    mergedParams.push(params[indexParams++]);
+                } else {
+                    mergedParams.push(baseParams[index]);
 
-                    if (this.contracts[param]) {
-                        params.unshift(param);
-                        keepUndef = true;
-                    } else if (keepUndef) {
-                        params.unshift(undefined);
+                    if (contract.options.writable) {
+                        indexParams++;
                     }
                 }
-            } else {
-                params = contract.params;
             }
 
-            initialParams = initialParams.length === 0 ? params : initialParams;
-
-            if (contract.options.writable) {
-                for (var _i = 0; _i < Math.max(newParams.length, initialParams.length); _i++) {
-                    mergedParams.push(newParams[_i] === undefined ? initialParams[_i] : newParams[_i]);
-                }
-            } else {
-                mergedParams = [].concat(_toConsumableArray(initialParams), _toConsumableArray(newParams));
-            }
-
-            return mergedParams;
+            return mergedParams.concat(params.slice(indexParams));
         }
 
         /**
@@ -320,20 +339,19 @@ var DI = function () {
     }, {
         key: 'createInstanceList',
         value: function createInstanceList(contractStr, params) {
-            var _this2 = this;
+            var _this3 = this;
 
             var constParams = [],
-                contract = this.contracts[contractStr],
-                mergedParams = this.mergeParams(contract, params);
+                mergedParams = this.mergeParams(this.contracts[contractStr], params);
 
             mergedParams.forEach(function (item) {
                 if (Array.isArray(item)) {
                     constParams.push(item.reduce(function (list, c) {
-                        list.push(_this2.contracts[c] ? _this2.getInstance(c) : c);
+                        list.push(_this3.contracts[c] ? _this3.getInstance(c) : c);
                         return list;
                     }, []));
                 } else {
-                    constParams.push(_this2.createInstanceIfContract(item));
+                    constParams.push(_this3.createInstanceIfContract(item));
                 }
             });
 
