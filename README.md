@@ -121,7 +121,7 @@ Install this library with `npm`
     
 or
 
-    $> bower install javascript-dependency-injection#2.0.0-beta.12
+    $> bower install javascript-dependency-injection#2.0.0-rc.1
     
 #### Unit testing ####
 
