@@ -1,24 +1,22 @@
-export class MachineFactory {
+export class BarSimple {
     constructor() { this.args = arguments; }
 }
 
-export class Engine {
+export class BarBasic {
+    constructor(a, b, c) { this.args = arguments; }
+}
+
+export class BarComplex {
+    constructor(a, $foo, c, $barBasic, d) { this.args = arguments; }
+}
+
+export class FooSimple {
     constructor() { this.args = arguments; }
 }
 
-export class EnginePart {
-    constructor() { this.args = arguments; }
-}
-export class User {
-    constructor() { this.args = arguments; }
+export function FooBasic(a, b, c) {
+    this.args = arguments;
 }
 
-export function TireS($engineModelS) { this.args = arguments; }
+export function FooComplex(a, $foo, $barComplex, b, c) { this.args = arguments; }
 
-export class TireSX {
-    constructor($engineModelX, valX, $engineModelS, valS) { this.args = arguments; }
-}
-
-let inventory = {};
-function placeOrder() { this.args = arguments; }
-export { inventory, placeOrder };

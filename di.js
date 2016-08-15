@@ -232,7 +232,7 @@ export default class DI {
             , mergedParams = [];
 
         if (contract.paramsOrigin === 'auto')
-        {
+        {   // Remove all non contract parameters
             baseParams = contract.params.map((param) => this.contracts[param] ? param : undefined);
         }
         else

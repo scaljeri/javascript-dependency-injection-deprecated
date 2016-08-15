@@ -6,11 +6,11 @@
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/scaljeri/javascript-dependency-injection?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-## Javascript Dependency Injection (DI) library written in ES2015 
+## Javascript Dependency Injection library written in ES2015 
 
 You can find a demo, documentation and a code coverage report [here](http://scaljeri.github.io/javascript-dependency-injection/)
 
- **DI** makes classes accessible by a contract. Instances are created when requested and 
+ This dependency injection (**DI**) library makes classes accessible by a contract. Instances are created when requested and 
  dependencies are injected into the constructor, facilitating lazy initialization and 
  loose coupling between classes --> maintainable and testable code!!!!
  
@@ -50,7 +50,7 @@ If you need a class to be a singleton, just tell **DI**
      // di.getInstance('$bar') === di.getInstance('$bar')
      
 ### Factories
-A class can produces instances of an other class
+A class can produce instances of an other class
  
      class Bar {
          getFoo(input) {
