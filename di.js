@@ -92,15 +92,16 @@ export default class DI {
             paramsOrigin = 'auto';
         }
 
-        if (options.augment) {
-            classRef = this.augment(classRef, options.augment);
+        if (options.augment === true)
+        {
+            classRef = this.augment(classRef);
         }
 
         this.contracts[contractStr] = {
             classRef: classRef
             , params: params
             , paramsOrigin: paramsOrigin
-            , options: options
+            , options: options || {}
         };
 
         // Prepare factory if not manually defined
@@ -163,8 +164,7 @@ export default class DI {
         let instance = null
             , contract = this.contracts[contractStr];
 
-        if (contract)
-        {
+        if (contract) {
             if (contract.options.singleton)
             {
                 instance = this.getSingletonInstance(contractStr, params);
@@ -180,6 +180,15 @@ export default class DI {
                     instance = this.createInstance(contractStr, params);
                 }
             }
+
+            if (Array.isArray(contract.options.augment))
+            {
+                this.depCheck.push(contractStr);
+                contract.options.augment.forEach((contractStr) => {
+                    instance[contractStr] = this.getInstance(contractStr);
+                });
+                this.depCheck.pop();
+            }
         }
 
         return instance;
@@ -194,7 +203,7 @@ export default class DI {
     createFactory(contractStr, initialParams) {
         let contract = this.contracts[contractStr]
             , factoryContract = {
-                options: contract.options
+                  options: contract.options
                 , params: this.mergeParams(contract, initialParams)
             };
 
@@ -375,29 +384,38 @@ export default class DI {
         return args === null ? [] : args.slice(-1)[0].replace(/\s/g, '').split(',');
     }
 
-    // Experimental
-    augment(classRef, methods) {
-        let className = classRef.toString().match(/\s([^(]+)/)[1];
+    augment(classRef) {
+        let di = this
+            , className = classRef.toString().match(/\s([^(]+)/)[1];
 
-        let newClassRef = new Function ('return function ' + className + '(){ function _classCallCheck() {}; return ' +  classRef.toString() + '.apply(this, arguments);}')();
+        let newClassRef = new Function('return function ' + className + '(){ function _classCallCheck() {}; return ' + classRef.toString() + '.apply(this, arguments);}')();
 
-        (methods || Object.getOwnPropertyNames(classRef.prototype)).forEach((name) => {
-            if (name !== 'constructor') {
+        Object.getOwnPropertyNames(classRef.prototype).forEach((name) => {
+            if (name !== 'constructor')
+            {
+                let functionArgs = classRef.prototype[name].toString().match(/\(([^)]+)/)[1].split(/,\s?/);
+
                 newClassRef.prototype[name] = function () {
-                    return classRef.prototype[name].apply(this, arguments) + 100;
+                    let index = 0
+                        , contracts = []
+                        , contract = true
+                        , inputArgs = Array.prototype.slice.call(arguments);
+
+                    while (contract)
+                    {
+                        contract = di.getInstance(functionArgs[index++]);
+
+                        if (contract)
+                        {
+                            contracts.push(contract);
+                        }
+                    }
+
+                    return classRef.prototype[name].apply(this, contracts.concat(inputArgs));
                 }
             }
         });
 
-        console.log('--- original');
-        let a = new classRef(10, 20);
-        console.log('TOTAL ' + a.total);
-        console.log(a.constructor.name);
-
-        console.log('---- modified');
-        let b = new newClassRef(10, 20);
-        console.log('TOTAL ' + b.total);
-        console.log(b.constructor.name);
         return newClassRef;
     }
 }

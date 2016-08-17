@@ -6,13 +6,22 @@ export class Bar {
     }
 }
 
-function Foo() {
+export class Baz {
+    constructor(base) { this.base = base; }
 
+    sum(a, b) {
+        return this.$bar.sum(a, b) + this.base;
+    }
+}
+
+function Foo(a, b) {
+    this.total = this.sum(a, b)
 }
 
 Foo.prototype.sum = function ($bar, a, b) {
     return $bar.sum(a, b);
 };
 
-//export Foo;
+
+export {Foo};
 
