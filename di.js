@@ -92,6 +92,10 @@ export default class DI {
             paramsOrigin = 'auto';
         }
 
+        if (options.augment) {
+            classRef = this.augment(classRef, options.augment);
+        }
+
         this.contracts[contractStr] = {
             classRef: classRef
             , params: params
@@ -369,6 +373,32 @@ export default class DI {
         let args = classRef.toString().match(/(?:(?:^function|constructor)[^\(]*\()([^\)]+)/);
 
         return args === null ? [] : args.slice(-1)[0].replace(/\s/g, '').split(',');
+    }
+
+    // Experimental
+    augment(classRef, methods) {
+        let className = classRef.toString().match(/\s([^(]+)/)[1];
+
+        let newClassRef = new Function ('return function ' + className + '(){ function _classCallCheck() {}; return ' +  classRef.toString() + '.apply(this, arguments);}')();
+
+        (methods || Object.getOwnPropertyNames(classRef.prototype)).forEach((name) => {
+            if (name !== 'constructor') {
+                newClassRef.prototype[name] = function () {
+                    return classRef.prototype[name].apply(this, arguments) + 100;
+                }
+            }
+        });
+
+        console.log('--- original');
+        let a = new classRef(10, 20);
+        console.log('TOTAL ' + a.total);
+        console.log(a.constructor.name);
+
+        console.log('---- modified');
+        let b = new newClassRef(10, 20);
+        console.log('TOTAL ' + b.total);
+        console.log(b.constructor.name);
+        return newClassRef;
     }
 }
 

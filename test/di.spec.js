@@ -4,7 +4,7 @@ import * as fixtures from './di-fixtures';
 
 let should = chai.should();
 
-describe.only("DI", () => {
+describe("DI", () => {
     let di;
 
     beforeEach(() => {
