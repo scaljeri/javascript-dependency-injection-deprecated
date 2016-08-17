@@ -56,7 +56,7 @@ You can find a demo, documentation and a code coverage report [here](http://scal
             this.total = this.$foo.sum(this.total, val);
         }
     }
-    di.register('$bar')
+    di.register('$bar', Bar);
     
     let bar = di.getInstance('$bar', 100);
     bar.add(1); // bar.total === 101
@@ -74,7 +74,10 @@ Here **DI** inspects the constructor arguments and replaces `$foo` with a `Foo` 
     }
     di.register('$bar', Bar, { augment: true });
     
-Without the `// @inject` string **DI** injects dependencies (if any) in to all functions defined by the `prototype` object.
+    let bar = di.getInstance('$bar', 10);
+    bar.add(100); // -> bar.total === 110
+    
+Without the `// @inject` string **DI** injects dependencies (if any) in to the functions defined by the `prototype` object.
      
 ### Singletons
 If you need a class to be a singleton, just tell **DI**
