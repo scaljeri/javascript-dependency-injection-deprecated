@@ -94,7 +94,7 @@ export default class DI {
 
         if (options.augment === true)
         {
-            classRef = this.augment(classRef);
+            classRef = this.augment(classRef, options);
         }
 
         this.contracts[contractStr] = {
@@ -384,37 +384,43 @@ export default class DI {
         return args === null ? [] : args.slice(-1)[0].replace(/\s/g, '').split(',');
     }
 
-    augment(classRef) {
+    augment(classRef, options) {
         let di = this
-            , className = classRef.toString().match(/\s([^(]+)/)[1];
+            , newClassRef = classRef
+            , contractList = classRef.toString().match(/@inject\s*:*\s*([^\n]+)/);
 
-        let newClassRef = new Function('return function ' + className + '(){ function _classCallCheck() {}; return ' + classRef.toString() + '.apply(this, arguments);}')();
+        if (contractList)
+        {
+            options.augment = contractList[1].split(/,\s+|\s+?/);
+        }
+        else {
+            let className = classRef.toString().match(/\s([^(]+)/)[1];
+            newClassRef = new Function('return function ' + className + '(){ function _classCallCheck() {}; return ' + classRef.toString() + '.apply(this, arguments);}')();
+            newClassRef.prototype = Object.create(classRef.prototype); // Fix instanceof
 
-        Object.getOwnPropertyNames(classRef.prototype).forEach((name) => {
-            if (name !== 'constructor')
-            {
-                let functionArgs = classRef.prototype[name].toString().match(/\(([^)]+)/)[1].split(/,\s?/);
+            Object.getOwnPropertyNames(classRef.prototype).forEach((name) => {
+                if (name !== 'constructor') {
+                    let functionArgs = classRef.prototype[name].toString().match(/\(([^)]+)/)[1].split(/,\s?/);
 
-                newClassRef.prototype[name] = function () {
-                    let index = 0
-                        , contracts = []
-                        , contract = true
-                        , inputArgs = Array.prototype.slice.call(arguments);
+                    newClassRef.prototype[name] = function () {
+                        let index = 0
+                                , contracts = []
+                                , contract = true
+                                , inputArgs = Array.prototype.slice.call(arguments);
 
-                    while (contract)
-                    {
-                        contract = di.getInstance(functionArgs[index++]);
+                        while (contract) {
+                            contract = di.getInstance(functionArgs[index++]);
 
-                        if (contract)
-                        {
-                            contracts.push(contract);
+                            if (contract) {
+                                contracts.push(contract);
+                            }
                         }
-                    }
 
-                    return classRef.prototype[name].apply(this, contracts.concat(inputArgs));
+                        return classRef.prototype[name].apply(this, contracts.concat(inputArgs));
+                    }
                 }
-            }
-        });
+            });
+        }
 
         return newClassRef;
     }

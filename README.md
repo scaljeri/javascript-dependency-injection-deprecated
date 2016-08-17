@@ -11,69 +11,71 @@
 You can find a demo, documentation and a code coverage report [here](http://scaljeri.github.io/javascript-dependency-injection/)
 
  This dependency injection (**DI**) library makes classes accessible by a contract. Instances are created when requested and 
- dependencies are injected into the constructor, facilitating lazy initialization and 
+ dependencies are injected, facilitating lazy initialization and 
  loose coupling between classes --> maintainable and testable code!!!!
  
 ### The Basics     
 
-**DI** is an extremely versatile library, because you have many ways to inject your dependencies.
-Consider the following situation in which the class `Bar` depends on `Foo`
+**DI** is an extremely versatile library, because it provides many ways to implement dependency injection.
 
-     class Bar {
-         constructor(val1, $foo, val2) { this.foo = $foo; this.val1 = val1; ... }
-     }
-     
-     class Foo {}
-     
-These classes can be registered as follows
+#### Example 1
 
-    di.register('$bar', Bar);                   // $bar - is the name of the contract (can be anything),
-                                                // Bar  - the class reference
-    di.register('$foo', Foo);                   // The order of registration is irrelevant (lazy initialization!)
-    
-Finally, use `getInstance` to create instances
-
-    let bar = di.getInstance('$bar', 10, 20);   // bar instanceof Bar
-                                                // bar.val1 === 10
-                                                // bar.foo instanceOf Foo -> true
-                                                // bar.val2 === 20
-    
-Note how `bar.foo` is an instance of `Foo` and not the value `20`!
-
-If you like to be more explicit, you can define the constructor arguments yourself
-
-    di.register('$bar', Bar, [undefined, '$foo', undefined]);
-    
-    
-### Augement
-
-Above I've shown how to inject dependencies into the constructor, but **DI** can also
-inject them into the instance methods or add them to instance itself
-
-Here is an example of how to add the dependencies to the instance:
-
-    class Bar {}
-    di.register('$bar', Bar, {augment: ['$foo']});
-    let bar = di.getInstance('$bar');               // bar.$foo instanceof Foo
-    
-And here is an other example, in which the dependencies are injected into the methods of the instance:
-
-    class Bar {
-        sum($foo, a, b) {
-            return $foo.sum(a, b);
-        }
-    }
-    
     class Foo {
         sum(a, b) { return a + b }
     }
+    
+    class Bar {
+        constructor(base) {
+            // @inject: $foo
+            this.total = base;
+        }
+         
+        add(val) {
+            this.total = this.$foo.sum(this.total, val);
+        }
+    }
+    
     di.register('$foo', Foo);
-    di.register('$bar', Bar, {augment: true});
-    let bar = di.getInstance('$bar');
-    bar.sum(1, 2); // -> 3
+    di.register('$bar', Bar, { augment: true });
     
-The only restriction here is that the contracts have to be the first arguments of the function!
+    let bar = di.getInstance('$bar', 100);
+    bar.add(1); // bar.total === 101
     
+
+**DI** parses the string `// @inject: $foo` and adds a `Foo` instance to the `Bar` instance.
+
+#### Example 2
+
+    class Bar { 
+        constructor($foo, base) {
+            this.$foo = $foo;
+            this.total = base;
+        }
+        
+        add(val) {
+            this.total = this.$foo.sum(this.total, val);
+        }
+    }
+    di.register('$bar')
+    
+    let bar = di.getInstance('$bar', 100);
+    bar.add(1); // bar.total === 101
+    
+Here **DI** inspects the constructor arguments and replaces `$foo` with a `Foo` instance
+
+## Example 3
+
+    class Bar {
+        constructor(base) { this.total = base; }
+      
+        add($foo, val) {
+          this.total = $foo.sum(this.total, val);
+        }
+    }
+    di.register('$bar', Bar, { augment: true });
+    
+Without the `// @inject` string **DI** injects dependencies (if any) in to all functions defined by the `prototype` object.
+     
 ### Singletons
 If you need a class to be a singleton, just tell **DI**
  
