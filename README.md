@@ -16,6 +16,7 @@ You can find a demo, documentation and a code coverage report [here](http://scal
  
 ### The Basics     
 
+**DI** is an extremely versatile library, because you have many ways to inject your dependencies.
 Consider the following situation in which the class `Bar` depends on `Foo`
 
      class Bar {
@@ -42,6 +43,36 @@ Note how `bar.foo` is an instance of `Foo` and not the value `20`!
 If you like to be more explicit, you can define the constructor arguments yourself
 
     di.register('$bar', Bar, [undefined, '$foo', undefined]);
+    
+    
+### Augement
+
+Above I've shown how to inject dependencies into the constructor, but **DI** can also
+inject them into the instance methods or add them to instance itself
+
+Here is an example of how to add the dependencies to the instance:
+
+    class Bar {}
+    di.register('$bar', Bar, {augment: ['$foo']});
+    let bar = di.getInstance('$bar');               // bar.$foo instanceof Foo
+    
+And here is an other example, in which the dependencies are injected into the methods of the instance:
+
+    class Bar {
+        sum($foo, a, b) {
+            return $foo.sum(a, b);
+        }
+    }
+    
+    class Foo {
+        sum(a, b) { return a + b }
+    }
+    di.register('$foo', Foo);
+    di.register('$bar', Bar, {augment: true});
+    let bar = di.getInstance('$bar');
+    bar.sum(1, 2); // -> 3
+    
+The only restriction here is that the contracts have to be the first arguments of the function!
     
 ### Singletons
 If you need a class to be a singleton, just tell **DI**
@@ -112,6 +143,22 @@ Check this out
     
 For more advanced use-cases checkout the [unit tests](https://github.com/scaljeri/javascript-dependency-injection/blob/master/test/di.spec.js)
 file.
+
+### Augment
+Most of the time you need the injected dependencies somewhere outside of the constructor, meaning you have to 
+put them all on `this` object (boilerplate code).
+
+If you inject dependencies into the constructor you are writing boilerplate code a
+Passing all the dependencies into the constructor 
+Consider the following class
+
+    class Foo {
+        constructor() {}
+        
+        sum($bar, a, b) { 
+            return $bar
+    }
+**DI** can also augment the class or the instances it creates. 
 
 #### Installation ####
 
