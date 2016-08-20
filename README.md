@@ -16,7 +16,7 @@ You can find a demo, documentation and a code coverage report [here](http://scal
  
 ### The Basics     
 
-**DI** is an extremely versatile library, because it provides many ways to implement dependency injection.
+**DI** is an extremely versatile library; it provides many ways to implement dependency injection.
 
 #### Example 1
 
@@ -26,12 +26,12 @@ You can find a demo, documentation and a code coverage report [here](http://scal
     
     class Bar {
         constructor(base) {
-            // @inject: $foo
+            this.inject = ['$foo'];
             this.total = base;
         }
          
         add(val) {
-            this.total = this.$foo.sum(this.total, val);
+            this.total = this.inject.$foo.sum(this.total, val);
         }
     }
     
@@ -42,7 +42,28 @@ You can find a demo, documentation and a code coverage report [here](http://scal
     bar.add(1); // bar.total === 101
     
 
-**DI** parses the string `// @inject: $foo` and adds a `Foo` instance to the `Bar` instance.
+After **DI** has created the instance, it checks for the existance of the `inject` property. If present, the array is  
+is replaced with an object holding all requested dependencies. NOTE: In this situation the dependencies cannot be used inside 
+the constructor because they are injected after the instance is created.
+
+However, if you define the dependencies during registration ....
+
+#### Example 2
+
+    class Bar {
+        constructor(base) {
+            this.total = this.inject.$foo.add(0, base);
+        }
+         
+        add(val) {
+            this.total = this.inject.$foo.sum(this.total, val);
+        }
+    }
+    di.register('$bar', Bar, {inject: ['$foo']});
+    
+you can use them inside the constructor! 
+
+But there is a third way too ....
 
 #### Example 2
 
@@ -56,14 +77,17 @@ You can find a demo, documentation and a code coverage report [here](http://scal
             this.total = this.$foo.sum(this.total, val);
         }
     }
-    di.register('$bar', Bar);
+    di.register('$bar', Bar, { augment: 'constructor');
     
     let bar = di.getInstance('$bar', 100);
     bar.add(1); // bar.total === 101
     
-Here **DI** inspects the constructor arguments and replaces `$foo` with a `Foo` instance
+This time, **DI** knows nothing about `Bar`, in which case it inspects the constructor 
+arguments and injects the dependencies directly into the constructor.
 
-## Example 3
+This pattern can be extended to the instance functions too
+
+#### Example 3
 
     class Bar {
         constructor(base) { this.total = base; }
@@ -77,13 +101,31 @@ Here **DI** inspects the constructor arguments and replaces `$foo` with a `Foo` 
     let bar = di.getInstance('$bar', 10);
     bar.add(100); // -> bar.total === 110
     
-Without the `// @inject` string **DI** injects dependencies (if any) in to the functions defined by the `prototype` object.
-     
+
+It is also possible to define the constructor arguments yourself
+
+#### Example 4
+
+    class Bar {
+      constructor(someInstance, someValue) {
+          this.someInstance = someInstance;
+          this.someValue = someValue;
+      }
+      ...
+    }
+
+    di.register('$bar', Bar, ['$foo' ,100]);
+    var bar = di.getInstance('$bar');
+    bar.someInstance instanceOf Foo
+    bar.someValue === 100;
+       
+Checkout the unit tests for more advanced examples
+       
 ### Singletons
-If you need a class to be a singleton, just tell **DI**
+**DI** can also return the same instance (singleton)
  
      di.register('$bar', Bar, { singleton: true });
-     // di.getInstance('$bar') === di.getInstance('$bar')
+     di.getInstance('$bar') === di.getInstance('$bar')
      
 ### Factories
 A class can produce instances of an other class
@@ -118,7 +160,11 @@ If you really want to create a factory yourself, you can
      
 ## Parameters 
 Now things get a bit tricky, because parameters can be set at different places and
-some kind of parameter-inheritance happens. For example
+some kind of parameter-inheritance happens. The first level of where parameters can be defined is 
+with `register`
+
+    di.register('$bar', Bar, ['$foo', 
+For example
  
      di.register('$bar', Bar, ['p1', 'p2', 'p3', 'p4']);
      let bar = di.getInstance('$bar', 'p5', 'p6', 'p7');
@@ -148,22 +194,6 @@ Check this out
     
 For more advanced use-cases checkout the [unit tests](https://github.com/scaljeri/javascript-dependency-injection/blob/master/test/di.spec.js)
 file.
-
-### Augment
-Most of the time you need the injected dependencies somewhere outside of the constructor, meaning you have to 
-put them all on `this` object (boilerplate code).
-
-If you inject dependencies into the constructor you are writing boilerplate code a
-Passing all the dependencies into the constructor 
-Consider the following class
-
-    class Foo {
-        constructor() {}
-        
-        sum($bar, a, b) { 
-            return $bar
-    }
-**DI** can also augment the class or the instances it creates. 
 
 #### Installation ####
 
