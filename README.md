@@ -8,15 +8,18 @@
 
 ## Javascript Dependency Injection library written in ES2015 
 
+NOTE: This package will soon be renamed to **di-xxl**
+
 You can find a demo, documentation and a code coverage report [here](http://scaljeri.github.io/javascript-dependency-injection/)
 
- This dependency injection (**DI**) library makes classes accessible by a contract. Instances are created when requested and 
+ **DI-XXL** is a dependency injection library which makes classes accessible by a contract. Instances are created when requested and 
  dependencies are injected, facilitating lazy initialization and 
  loose coupling between classes --> maintainable and testable code!!!!
  
 ### The Basics     
 
 **DI** is an extremely versatile library; it provides many ways to implement dependency injection.
+
 
 #### Example 1
 
@@ -26,7 +29,7 @@ You can find a demo, documentation and a code coverage report [here](http://scal
     
     class Bar {
         constructor(base) {
-            this.inject = ['$foo'];
+            this.inject = ['$foo']; // <- list of contracts
             this.total = base;
         }
          
@@ -36,23 +39,25 @@ You can find a demo, documentation and a code coverage report [here](http://scal
     }
     
     di.register('$foo', Foo);
-    di.register('$bar', Bar, { augment: true });
+    di.register('$bar', Bar); 
     
     let bar = di.getInstance('$bar', 100);
     bar.add(1); // bar.total === 101
     
 
-After **DI** has created the instance, it checks for the existance of the `inject` property. If present, the array is  
-is replaced with an object holding all requested dependencies. NOTE: In this situation the dependencies cannot be used inside 
-the constructor because they are injected after the instance is created.
+During registration the constructor is inspected and the line `this.inject = ['$foo'];` parsed. Next,
+just after the `instance` is created, the `inject` array is replaced with an object holding all requested dependencies. 
 
-However, if you define the dependencies during registration ....
+NOTE: In this situation the dependencies cannot be used inside the constructor because they are injected 
+after the instance is created.
+
+However, if you need dependencies in the constructor you have a couple of ways to achieve this
 
 #### Example 2
 
     class Bar {
         constructor(base) {
-            this.total = this.inject.$foo.add(0, base);
+            this.total = this.inject.$foo.add(0, base); // Here the dependency is used!
         }
          
         add(val) {
@@ -61,15 +66,13 @@ However, if you define the dependencies during registration ....
     }
     di.register('$bar', Bar, {inject: ['$foo']});
     
-you can use them inside the constructor! 
-
-But there is a third way too ....
+Or you can do the following
 
 #### Example 2
 
     class Bar { 
         constructor($foo, base) {
-            this.$foo = $foo;
+            this.$foo = $foo;     // $foo instanceof Foo (injected)
             this.total = base;
         }
         
@@ -77,15 +80,14 @@ But there is a third way too ....
             this.total = this.$foo.sum(this.total, val);
         }
     }
-    di.register('$bar', Bar, { augment: 'constructor');
+    di.register('$bar', Bar);
     
     let bar = di.getInstance('$bar', 100);
     bar.add(1); // bar.total === 101
     
-This time, **DI** knows nothing about `Bar`, in which case it inspects the constructor 
-arguments and injects the dependencies directly into the constructor.
+This time **DI-XXL** doesn't know what do to, in which case it extracts and inspects the constructor arguments.
 
-This pattern can be extended to the instance functions too
+This pattern can be extended to the instance methods too
 
 #### Example 3
 
@@ -96,7 +98,7 @@ This pattern can be extended to the instance functions too
           this.total = $foo.sum(this.total, val);
         }
     }
-    di.register('$bar', Bar, { augment: true });
+    di.register('$bar', Bar, { augment: true }); // or a list of instance methods
     
     let bar = di.getInstance('$bar', 10);
     bar.add(100); // -> bar.total === 110
