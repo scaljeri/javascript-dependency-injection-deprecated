@@ -26,7 +26,9 @@ export default class DI {
      * @class DI
      * @constructor
      **/
-    constructor() {
+    constructor(options = {}) {
+        this._injectPropName = options.injectPropertyName || 'inject';
+
         this.reset();
     }
 
@@ -53,14 +55,12 @@ export default class DI {
     register(contractStr, classRef, params = [], options = {}) {
         let paramsOrigin = 'input';
 
-        if (Array.isArray(classRef))
-        {
+        if (Array.isArray(classRef)) {
             options = params;
             params = classRef;
             classRef = null;
         }
-        else if (classRef && typeof classRef === 'object')
-        {
+        else if (classRef && typeof classRef === 'object') {
             options = classRef;
             classRef = null;
         }
@@ -72,28 +72,36 @@ export default class DI {
         }
 
         // --debug-start--
-        if (!classRef)
-        {
-            if (!options.factoryFor)
-            {
+        if (!classRef) {
+            if (!options.factoryFor) {
                 console.warn(`#register(${contractStr}): 'classRef' is not defined`);
             }
         }
-        else if (typeof(classRef) !== 'function')
-        {
+        else if (typeof(classRef) !== 'function') {
             console.warn(`#register(${contractStr}): 'classRef' is not a function`);
         }
         // --debug-end--
 
+        let contract = {
+            classRef: classRef,
+            name: contractStr,
+            options: options,
+            params: params
+        };
 
-        if (params.length === 0 && classRef && options.autoDetect !== false)
-        {
+        this.prepareContract(contract);
+
+        if (options.augment) {
+            this.augment(options);
+        }
+
+
+        if (params.length === 0 && classRef && options.autoDetect !== false) {
             params = params.length === 0 ? this.extractContracts(classRef) : params;
             paramsOrigin = 'auto';
         }
 
-        if (options.augment === true)
-        {
+        if (options.augment === true) {
             classRef = this.augment(classRef, options);
         }
 
@@ -105,8 +113,7 @@ export default class DI {
         };
 
         // Prepare factory if not manually defined
-        if (!options.factoryFor && !this.contracts[`${contractStr}Factory`])
-        {
+        if (!options.factoryFor && !this.contracts[`${contractStr}Factory`]) {
             this.contracts[`${contractStr}Factory`] = {
                 options: {
                     factoryFor: contractStr
@@ -162,27 +169,23 @@ export default class DI {
      **/
     getInstance(contractStr, ...params) {
         let instance = null
-            , contract = this.contracts[contractStr];
+                , contract = this.contracts[contractStr];
 
         if (contract) {
-            if (contract.options.singleton)
-            {
+            if (contract.options.singleton) {
                 instance = this.getSingletonInstance(contractStr, params);
             }
             else //create a new instance every time
             {
-                if (contract.options.factoryFor)
-                {
+                if (contract.options.factoryFor) {
                     instance = this.createFactory(contractStr, params);
                 }
-                else
-                {
+                else {
                     instance = this.createInstance(contractStr, params);
                 }
             }
 
-            if (Array.isArray(contract.options.augment))
-            {
+            if (Array.isArray(contract.options.augment)) {
                 this.depCheck.push(contractStr);
                 contract.options.augment.forEach((contractStr) => {
                     instance[contractStr] = this.getInstance(contractStr);
@@ -195,6 +198,41 @@ export default class DI {
     }
 
     /**
+     * Determine if the provided input need any additional information
+     *
+     * @private
+     * @param contract
+     */
+    prepareContract(contract) {
+        let options = contract.options,
+            classRefStr = contract.classRef.toString();
+
+        // `params` is a list of constructor arguments
+        if (!contract.params)
+        {
+            // Check if there is an injectable list
+            if (!options.inject && options.autodetect !== false)
+            {
+                options.inject = this.extractInjectParams(classRefStr);
+            }
+        }
+
+        // --debug-start--
+        if (options.inject && options.augment)
+        {
+            console.warn(`#register(${contractStr}): the 'inject' setting will be used instead of 'augment'`);
+        }
+        // --debug-end--
+        
+
+        // Keep it simple; using both is not allowed
+        if (!options.inject && options.augment)
+        {
+            contract.classRef = this.augment(classRef, classRefStr);
+        }
+    }
+
+    /**
      * @private
      * @param contractStr
      * @param initialParams
@@ -202,10 +240,10 @@ export default class DI {
      */
     createFactory(contractStr, initialParams) {
         let contract = this.contracts[contractStr]
-            , factoryContract = {
-                  options: contract.options
-                , params: this.mergeParams(contract, initialParams)
-            };
+                , factoryContract = {
+            options: contract.options
+            , params: this.mergeParams(contract, initialParams)
+        };
 
         return (...params) => {
             return this.getInstance(factoryContract.options.factoryFor, ...this.mergeParams(factoryContract, params));
@@ -241,30 +279,24 @@ export default class DI {
      */
     mergeParams(contract, params = []) {
         let baseParams
-            , indexParams = 0
-            , mergedParams = [];
+                , indexParams = 0
+                , mergedParams = [];
 
-        if (contract.paramsOrigin === 'auto')
-        {   // Remove all non contract parameters
+        if (contract.paramsOrigin === 'auto') {   // Remove all non contract parameters
             baseParams = contract.params.map((param) => this.contracts[param] ? param : undefined);
         }
-        else
-        {
+        else {
             baseParams = contract.params;
         }
 
-        for (let index = 0; index < baseParams.length; index++)
-        {
-            if (baseParams[index] === undefined || (contract.options.writable && params[indexParams] !== undefined))
-            {
+        for (let index = 0; index < baseParams.length; index++) {
+            if (baseParams[index] === undefined || (contract.options.writable && params[indexParams] !== undefined)) {
                 mergedParams.push(params[indexParams++]);
             }
-            else
-            {
+            else {
                 mergedParams.push(baseParams[index]);
 
-                if (contract.options.writable)
-                {
+                if (contract.options.writable) {
                     indexParams++;
                 }
             }
@@ -288,8 +320,8 @@ export default class DI {
      **/
     createInstance(contractStr, params) {
         let cr, instance
-            , self = this
-            , contract = this.contracts[contractStr];
+                , self = this
+                , contract = this.contracts[contractStr];
 
         function Dependency() {
             cr.apply(this, self.createInstanceList(contractStr, params));
@@ -314,19 +346,17 @@ export default class DI {
      * */
     createInstanceList(contractStr, params) {
         let constParams = []
-            , mergedParams = this.mergeParams(this.contracts[contractStr], params);
+                , mergedParams = this.mergeParams(this.contracts[contractStr], params);
 
         mergedParams.forEach((item) => {
-            if (Array.isArray(item))
-            {
+            if (Array.isArray(item)) {
                 constParams.push(item.reduce(
                         (list, c) => {
                             list.push(this.contracts[c] ? this.getInstance(c) : c);
                             return list;
                         }, []));
             }
-            else
-            {
+            else {
                 constParams.push(this.createInstanceIfContract(item));
             }
         });
@@ -340,10 +370,9 @@ export default class DI {
      */
     getSingletonInstance(contractStr, params) {
         let contract = this.contracts[contractStr]
-            , mergedParams = this.mergeParams(contract, params);
+                , mergedParams = this.mergeParams(contract, params);
 
-        if (contract.instance === undefined || (params && params.length > 0))
-        {
+        if (contract.instance === undefined || (params && params.length > 0)) {
             contract.params = mergedParams;
             contract.instance = this.createInstance(contractStr);
         }
@@ -358,7 +387,7 @@ export default class DI {
      */
     createInstanceIfContract(contractStr) {                                     // is a contract
         let problemContract
-            , constParam = contractStr;
+                , constParam = contractStr;
 
         if (typeof(contractStr) === 'string' && this.contracts[contractStr])   // is 'contract' just a contructor parameter or a contract?
         {
@@ -367,8 +396,7 @@ export default class DI {
                 constParam = this.getInstance(contractStr);                    // create the instance
                 this.depCheck.pop();                                           // done, remove dependency from the list
             }
-            else
-            { // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!
+            else { // circular dependency detected!! --> STOP, someone did something stupid -> fix needed!!
                 problemContract = this.depCheck[0];
                 this.depCheck.length = 0;                                      // cleanup
                 throw Error("Circular dependency detected for contract " + problemContract);
@@ -386,11 +414,10 @@ export default class DI {
 
     augment(classRef, options) {
         let di = this
-            , newClassRef = classRef
-            , contractList = classRef.toString().match(/@inject\s*:*\s*([^\n]+)/);
+                , newClassRef = classRef
+                , contractList = classRef.toString().match(/@inject\s*:*\s*([^\n]+)/);
 
-        if (contractList)
-        {
+        if (contractList) {
             options.augment = contractList[1].split(/,\s+|\s+?/);
         }
         else {

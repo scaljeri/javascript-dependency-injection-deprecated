@@ -18,7 +18,8 @@ You can find a demo, documentation and a code coverage report [here](http://scal
  
 ### The Basics     
 
-**DI** is an extremely versatile library; it provides many ways to implement dependency injection.
+**DI-XXL** is an extremely versatile library; it provides many ways to implement dependency injection. Choose
+whatever fits your needs best.
 
 
 #### Example 1
@@ -45,7 +46,7 @@ You can find a demo, documentation and a code coverage report [here](http://scal
     bar.add(1); // bar.total === 101
     
 
-During registration the constructor is inspected and the line `this.inject = ['$foo'];` parsed. Next,
+During registration the constructor is inspected and the line `this.inject = ['$foo'];` is parsed. Next,
 just after the `instance` is created, the `inject` array is replaced with an object holding all requested dependencies. 
 
 NOTE: In this situation the dependencies cannot be used inside the constructor because they are injected 
@@ -68,7 +69,7 @@ However, if you need dependencies in the constructor you have a couple of ways t
     
 Or you can do the following
 
-#### Example 2
+#### Example 3
 
     class Bar { 
         constructor($foo, base) {

@@ -23,7 +23,7 @@ describe("DI", () => {
         should.not.exist(di.getInstance('iDoNotExist'));
     });
 
-    describe('#register', () => {
+    describe.only('#register', () => {
         describe('Without params/options', () => {
             let foo, bar;
 
