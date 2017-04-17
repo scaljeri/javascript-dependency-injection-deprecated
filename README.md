@@ -233,3 +233,7 @@ or
 
 [code-climate-url]: https://codeclimate.com/github/scaljeri/javascript-dependency-injection/badges/gpa.svg
 [code-climate-image]: https://codeclimate.com/github/scaljeri/javascript-dependency-injection
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/scaljeri/javascript-dependency-injection/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
