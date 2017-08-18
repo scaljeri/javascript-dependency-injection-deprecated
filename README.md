@@ -8,7 +8,8 @@
 
 ## Javascript Dependency Injection library written in ES2015 
 
-NOTE: This package will soon be renamed to **di-xxl**
+
+NOTE: This library is deprecated in favor of [**di-xxl**](https://github.com/scaljeri/di-xxl). It is no longer maintained!!
 
 You can find a demo, documentation and a code coverage report [here](http://scaljeri.github.io/javascript-dependency-injection/)
 
